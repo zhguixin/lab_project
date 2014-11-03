@@ -11,6 +11,7 @@ from gnuradio import eng_notation
 from gnuradio import gr
 from gnuradio import uhd
 from gnuradio import filter
+from gnuradio import vocoder
 from gnuradio.eng_option import eng_option
 from gnuradio.filter import firdes
 from optparse import OptionParser
@@ -191,7 +192,7 @@ class ue65_ping_15prb(gr.top_block):
         status['route'] = self.route
         return status
 
-class ue65_ping_15prb_audio(gr.top_block):
+class ue65_ping_15prb_audio_old(gr.top_block):
 
     def __init__(self,**param):
         gr.top_block.__init__(self, "Ue65 Ping 15Prb Audio")
@@ -322,6 +323,128 @@ class ue65_ping_15prb_audio(gr.top_block):
 
         status['ip'] = self.ip
         status['route'] = self.route
+        return status
+
+class ue65_ping_15prb_audio(gr.top_block):
+
+    def __init__(self,**param):
+        gr.top_block.__init__(self, "Ue65 Ping 15Prb")
+
+        ##################################################
+        # Variables
+        ##################################################
+        self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(65, 6)
+        self.variable_ul_para_0.set_cch_period(10, 4)
+        self.variable_ul_para_0.set_srs_period(10, 5)
+        self.variable_ul_para_0.set_sch_params(4, 2)
+        self.variable_ul_para_0.set_srs_transmissionComb(1)
+        self.variable_ul_para_0.enable_bsr_persist(True)
+          
+        self.samp_rate = samp_rate = 4e6
+        self.prbl = prbl = 15
+        self.fftl = fftl = 256
+
+        ##################################################
+        # Blocks
+        ##################################################
+        self.vocoder_g721_encode_sb_0_0 = vocoder.g721_encode_sb()
+        self.vocoder_g721_decode_bs_0 = vocoder.g721_decode_bs()
+        self.uhd_usrp_source_0 = uhd.usrp_source(
+            device_addr="addr=192.168.10.2",
+            stream_args=uhd.stream_args(
+                cpu_format="fc32",
+                channels=range(1),
+            ),
+        )
+        self.uhd_usrp_source_0.set_samp_rate(4e6)
+        self.uhd_usrp_source_0.set_center_freq(900e6, 0)
+        self.uhd_usrp_source_0.set_gain(10, 0)
+        self.uhd_usrp_sink_0 = uhd.usrp_sink(
+            device_addr="addr=192.168.10.2",
+            stream_args=uhd.stream_args(
+                cpu_format="fc32",
+                channels=range(1),
+            ),
+        )
+        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0.set_center_freq(800e6, 0)
+        self.uhd_usrp_sink_0.set_gain(10, 0)
+        self.rational_resampler_xxx_0 = filter.rational_resampler_ccc(
+                interpolation=25,
+                decimation=24,
+                taps=None,
+                fractional_bw=None,
+        )
+        self.lte_sat_ul_subframe_mapper_0 = lte_sat.ul_subframe_mapper()
+        self.lte_sat_ul_subframe_mapper_0.set_uplink_config(variable_ul_para_0)
+          
+        self.lte_sat_ul_baseband_generator_0 = lte_sat.ul_baseband_generator()
+        self.lte_sat_layer2_ue_0 = lte_sat.layer2_ue(variable_ul_para_0)
+        self.lte_sat_layer2_ue_0.create_logic_channel(lte_sat.mode_um,0)
+          
+        self.lte_sat_dl_subframe_demapper_0 = lte_sat.dl_subframe_demapper(65)
+        self.lte_sat_dl_baseband_sync_0 = lte_sat.dl_baseband_sync(0.5, False)
+        self.blocks_tagged_stream_to_pdu_0_0 = blocks.tagged_stream_to_pdu(blocks.byte_t, "packet_len")
+        self.blocks_stream_to_tagged_stream_0 = blocks.stream_to_tagged_stream(gr.sizeof_char, 1, 1000, "packet_len")
+        self.blocks_short_to_float_0 = blocks.short_to_float(1, 1024)
+        self.blocks_pdu_to_tagged_stream_0_0 = blocks.pdu_to_tagged_stream(blocks.byte_t, "packet_len")
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((128.0, ))
+        self.blocks_float_to_short_0_0 = blocks.float_to_short(1, 1024)
+        self.audio_source_0_0 = audio.source(48000, "", True)
+        self.audio_sink_0 = audio.sink(48000, "", True)
+
+        ##################################################
+        # Connections
+        ##################################################
+        self.connect((self.lte_sat_ul_subframe_mapper_0, 0), (self.lte_sat_ul_baseband_generator_0, 0))
+        self.connect((self.lte_sat_dl_subframe_demapper_0, 0), (self.lte_sat_layer2_ue_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.lte_sat_dl_baseband_sync_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_multiply_const_vxx_0, 0))
+        self.connect((self.lte_sat_dl_baseband_sync_0, 0), (self.lte_sat_dl_subframe_demapper_0, 0))
+        self.connect((self.blocks_stream_to_tagged_stream_0, 0), (self.blocks_tagged_stream_to_pdu_0_0, 0))
+        self.connect((self.rational_resampler_xxx_0, 0), (self.uhd_usrp_sink_0, 0))
+        self.connect((self.lte_sat_ul_baseband_generator_0, 0), (self.rational_resampler_xxx_0, 0))
+        self.connect((self.audio_source_0_0, 0), (self.blocks_float_to_short_0_0, 0))
+        self.connect((self.blocks_float_to_short_0_0, 0), (self.vocoder_g721_encode_sb_0_0, 0))
+        self.connect((self.vocoder_g721_encode_sb_0_0, 0), (self.blocks_stream_to_tagged_stream_0, 0))
+        self.connect((self.blocks_pdu_to_tagged_stream_0_0, 0), (self.vocoder_g721_decode_bs_0, 0))
+        self.connect((self.blocks_short_to_float_0, 0), (self.audio_sink_0, 0))
+        self.connect((self.vocoder_g721_decode_bs_0, 0), (self.blocks_short_to_float_0, 0))
+
+        ##################################################
+        # Asynch Message Connections
+        ##################################################
+        self.msg_connect(self.lte_sat_layer2_ue_0, "sched_from_l2", self.lte_sat_ul_subframe_mapper_0, "sched_from_l2")
+        self.msg_connect(self.lte_sat_dl_baseband_sync_0, "sys_info", self.lte_sat_dl_subframe_demapper_0, "sys_info")
+        self.msg_connect(self.lte_sat_dl_baseband_sync_0, "sys_info", self.lte_sat_ul_baseband_generator_0, "sys_info")
+        self.msg_connect(self.lte_sat_dl_baseband_sync_0, "sys_info", self.lte_sat_ul_subframe_mapper_0, "sys_info")
+        self.msg_connect(self.blocks_tagged_stream_to_pdu_0_0, "pdus", self.lte_sat_layer2_ue_0, "tx_data")
+        self.msg_connect(self.lte_sat_dl_subframe_demapper_0, "usg", self.lte_sat_layer2_ue_0, "usg")
+        self.msg_connect(self.lte_sat_layer2_ue_0, "rx_data", self.blocks_pdu_to_tagged_stream_0_0, "pdus")
+
+    def get_status(self):
+        status = {}
+        status['cell_id'] = self.lte_sat_dl_baseband_sync_0.get_cell_id()
+        status['prbl'] = self.lte_sat_dl_baseband_sync_0.get_prbl()
+        status['pss_status'] = self.lte_sat_dl_baseband_sync_0.get_pss_status()
+        status['sss_status'] = self.lte_sat_dl_baseband_sync_0.get_sss_status()
+        status['pbch_status'] = self.lte_sat_dl_baseband_sync_0.get_pbch_status()
+        status['process_state'] = self.lte_sat_dl_baseband_sync_0.get_process_state()
+        status['cfo'] = self.lte_sat_dl_baseband_sync_0.get_cfo()
+        status['fte'] = self.lte_sat_dl_baseband_sync_0.get_fte()
+        status['pss_pos'] = self.lte_sat_dl_baseband_sync_0.get_pss_pos()
+
+        status['fn'] = self.lte_sat_dl_subframe_demapper_0.get_fn()
+        status['sfn'] = self.lte_sat_dl_subframe_demapper_0.get_sfn()
+        status['fer'] = self.lte_sat_dl_subframe_demapper_0.get_fer()
+        status['rnti'] = self.lte_sat_dl_subframe_demapper_0.get_rnti()
+
+        status['pdu_sum'] = self.lte_sat_layer2_ue_0.get_mac_pdu_sum()
+        status['layer2_ue_fer'] = self.lte_sat_layer2_ue_0.get_fer()
+
+        status['ue_stat_info_0'] = self.lte_sat_layer2_ue_0.get_ue_stat_info_string(0)
+        status['ue_stat_info_1'] = self.lte_sat_layer2_ue_0.get_ue_stat_info_string(1)
+
         return status
 
 class dl_ber_test_recv(gr.top_block):
@@ -726,8 +849,8 @@ class MainFrame(wx.Frame):
             self.process_state.state_red()
         self.id_cell_t.SetValue(str(dict_status['cell_id']))
         self.rnti_t.SetValue(str(dict_status['rnti']))
-        self.virtual_ip_t.SetValue(str(dict_status['ip']))
-        self.select_route_t.SetValue(str(dict_status['route']))
+        # self.virtual_ip_t.SetValue(str(dict_status['ip']))
+        # self.select_route_t.SetValue(str(dict_status['route']))
         self.bandwidth_t.SetValue(str(dict_status['prbl']))
         self.cfo.SetValue(str(dict_status['cfo']))
         self.fte.SetValue(str(dict_status['fte']))
@@ -829,7 +952,7 @@ class MainFrame(wx.Frame):
         try: s_port = self.terminal_config.get("address", "s_port")
         except: s_port = '7000'
 
-        ip_st = wx.StaticText(self.panel, -1, u"IP地址 :")  
+        ip_st = wx.StaticText(self.panel, -1, u"IP地址 :")
         self.IPText = wx.TextCtrl(self.panel, -1, s_ip)  
         port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
@@ -1169,7 +1292,8 @@ class DetailDialog_Display(wx.Frame):
         dict_status = msg.data
 
         self.DisplayText.Clear()
-        self.DisplayText.AppendText(str(dict_status['ue_stat_info']))
+        self.DisplayText.AppendText(str(dict_status['ue_stat_info_0']))
+        self.DisplayText.AppendText(str(dict_status['ue_stat_info_1']))
 
         self.mac_pdu_value.SetLabel(str(dict_status['pdu_sum']))
         self.frame_error_rate_value.SetLabel(str(dict_status['fer']))
@@ -1195,10 +1319,6 @@ class DetailDialog_Display(wx.Frame):
         sfn_st = wx.StaticText(self.panel, -1, u"子帧号:\t")
         self.sfn = wx.StaticText(self.panel, -1, '')
 
-        box1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'详细显示'), wx.VERTICAL)
-        box1.Add((10,10), 0)
-        box1.Add(self.DisplayText, 0, wx.EXPAND | wx.ALL, 10)
-
         sizer1 = wx.FlexGridSizer(cols=4, hgap=10, vgap=10)
         sizer1.AddGrowableCol(1)
         sizer1.AddGrowableCol(3)
@@ -1211,10 +1331,15 @@ class DetailDialog_Display(wx.Frame):
         sizer1.Add(sfn_st, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.sfn, 0, wx.EXPAND)
 
+        box1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'详细显示'), wx.VERTICAL)
+        box1.Add((10,10), 0)
+        box1.Add(self.DisplayText, 0, wx.EXPAND | wx.ALL, 10)
+        box1.Add(sizer1, 0, wx.EXPAND | wx.ALL, 10)
+
+
         hbox1 = wx.BoxSizer(wx.VERTICAL)
-        hbox1.Add(box1, 0, wx.EXPAND | wx.ALL)
         hbox1.Add((10,10), 0)
-        hbox1.Add(sizer1, 0, wx.EXPAND | wx.ALL)
+        hbox1.Add(box1, 0, wx.EXPAND | wx.ALL)
 
         self.panel.SetSizer(hbox1)
         self.panel.Fit()
