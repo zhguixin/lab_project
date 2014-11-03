@@ -12,6 +12,7 @@ from gnuradio import gr
 from gnuradio import uhd
 from gnuradio.eng_option import eng_option
 from gnuradio import filter
+from gnuradio import vocoder
 from gnuradio.filter import firdes
 from optparse import OptionParser
 import lte_sat
@@ -170,7 +171,7 @@ class eNB_ping_15prb_one65(gr.top_block):
         status['route'] = self.route
         return status
 
-class eNB_ping_15prb_one65_audio(gr.top_block):
+class eNB_ping_15prb_one65_audio_old(gr.top_block):
 
     def __init__(self,**param):
         gr.top_block.__init__(self, "Enb Ping 15Prb One65 Audio")
@@ -299,22 +300,130 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
     def get_status(self):
         status = {}
         status['stat_info'] = self.lte_sat_layer2_0.get_stat_string()
-        status['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_wrong_mac_pdu_count
-        status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_right_mac_pdu_count
-        status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_right_mac_pdu_bytes
-        status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_right_mac_pdu_bps
-        status['rx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_rlc_pdu_count
-        status['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_rlc_pdu_bytes
-        status['rx_rlc_pdu_bps'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_rlc_pdu_bps
-        status['rx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_rlc_sdu_count
-        status['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_rlc_sdu_bytes
-        status['rx_rlc_sdu_bps'] = self.lte_sat_layer2_ue_0.get_stat_info().rx_rlc_sdu_bps
-        status['tx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_stat_info().tx_rlc_sdu_count
-        status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_stat_info().tx_rlc_sdu_bytes
-        status['tx_rlc_sdu_bps'] = self.lte_sat_layer2_ue_0.get_stat_info().tx_rlc_sdu_bps
-
         status['ip'] = self.ip
         status['route'] = self.route
+        return status
+
+class eNB_ping_15prb_one65_audio(gr.top_block):
+
+    def __init__(self,**param):
+        gr.top_block.__init__(self, "Enb Ping 15Prb One65")
+
+        ##################################################
+        # Variables
+        ##################################################
+        self.rnti = rnti = 65
+        self.prbl = prbl = 15
+        self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(rnti, prbl)
+        self.variable_ul_para_0.set_cch_period(10, 4)
+        self.variable_ul_para_0.set_srs_period(10, 5)
+        self.variable_ul_para_0.set_sch_params(4, 2)
+        self.variable_ul_para_0.set_srs_transmissionComb(1)
+        self.variable_ul_para_0.enable_bsr_persist(True)
+          
+        self.samp_rate = samp_rate = 4e6
+        self.mod_type = mod_type = 1
+        self.fftl = fftl = 256
+
+        ##################################################
+        # Blocks
+        ##################################################
+        self.vocoder_g721_encode_sb_0 = vocoder.g721_encode_sb()
+        self.vocoder_g721_decode_bs_0 = vocoder.g721_decode_bs()
+        self.uhd_usrp_source_0 = uhd.usrp_source(
+            device_addr="addr=192.168.10.2",
+            stream_args=uhd.stream_args(
+                cpu_format="fc32",
+                channels=range(1),
+            ),
+        )
+        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_source_0.set_center_freq(800e6, 0)
+        self.uhd_usrp_source_0.set_gain(10, 0)
+        self.uhd_usrp_source_0.set_bandwidth(4e6, 0)
+        self.uhd_usrp_sink_0 = uhd.usrp_sink(
+            device_addr="addr=192.168.10.2",
+            stream_args=uhd.stream_args(
+                cpu_format="fc32",
+                channels=range(1),
+            ),
+        )
+        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0.set_center_freq(900e6, 0)
+        self.uhd_usrp_sink_0.set_gain(10, 0)
+        self.uhd_usrp_sink_0.set_bandwidth(4e6, 0)
+        self.rational_resampler_xxx_0 = filter.rational_resampler_ccc(
+                interpolation=25,
+                decimation=24,
+                taps=None,
+                fractional_bw=None,
+        )
+        self.lte_sat_ul_subframe_demapper_0 = lte_sat.ul_subframe_demapper(10,prbl)
+        self.lte_sat_ul_baseband_sync_0 = lte_sat.ul_baseband_sync(prbl,fftl,10,0.5,False)
+        self.lte_sat_tag_appender_1 = lte_sat.tag_appender(gr.sizeof_char, 1000)
+        self.lte_sat_tag_appender_1.add_tag("dst_lcid", 0)
+          
+        self.lte_sat_tag_appender_0 = lte_sat.tag_appender(gr.sizeof_char, 1000)
+        self.lte_sat_tag_appender_0.add_tag("dst_rnti", 65)
+          
+        self.lte_sat_layer2_0 = lte_sat.layer2(10,prbl,mod_type,0.4,mod_type,0.4)
+        self.lte_sat_layer2_0.create_logic_channel(rnti, 0, lte_sat.mode_um)
+        
+        self.lte_sat_eNB_config_0 = lte_sat.eNB_entity_config(False)
+        self.lte_sat_eNB_config_0.set_leading_sched_b4_mapping(2, 5)
+        self.lte_sat_eNB_config_0.set_leading_map_b4_sending(10)
+        self.lte_sat_eNB_config_0.set_delay_sfc_for_pusch_after_usg(20)
+        self.lte_sat_eNB_config_0.add_ul_param(variable_ul_para_0)
+          
+        self.lte_sat_dl_subframe_mapper_0_0 = lte_sat.dl_subframe_mapper(prbl,10)
+        self.lte_sat_dl_baseband_generator_0 = lte_sat.dl_baseband_generator(prbl, fftl)
+        self.blocks_tagged_stream_to_pdu_0 = blocks.tagged_stream_to_pdu(blocks.byte_t, "packet_len")
+        self.blocks_stream_to_tagged_stream_0 = blocks.stream_to_tagged_stream(gr.sizeof_char, 1, 1000, "packet_len")
+        self.blocks_short_to_float_0 = blocks.short_to_float(1, 1024)
+        self.blocks_pdu_to_tagged_stream_0 = blocks.pdu_to_tagged_stream(blocks.byte_t, "packet_len")
+        self.blocks_float_to_short_0 = blocks.float_to_short(1, 1024)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_char*1, "ul_demapper.dat", False)
+        self.blocks_file_sink_0.set_unbuffered(False)
+        self.audio_source_0 = audio.source(48000, "", True)
+        self.audio_sink_0 = audio.sink(48000, "", True)
+
+        ##################################################
+        # Connections
+        ##################################################
+        self.connect((self.blocks_stream_to_tagged_stream_0, 0), (self.lte_sat_tag_appender_0, 0))
+        self.connect((self.lte_sat_dl_subframe_mapper_0_0, 0), (self.lte_sat_dl_baseband_generator_0, 0))
+        self.connect((self.lte_sat_dl_baseband_generator_0, 0), (self.rational_resampler_xxx_0, 0))
+        self.connect((self.rational_resampler_xxx_0, 0), (self.uhd_usrp_sink_0, 0))
+        self.connect((self.lte_sat_ul_baseband_sync_0, 0), (self.lte_sat_ul_subframe_demapper_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.lte_sat_ul_baseband_sync_0, 0))
+        self.connect((self.lte_sat_ul_subframe_demapper_0, 0), (self.lte_sat_layer2_0, 0))
+        self.connect((self.lte_sat_ul_subframe_demapper_0, 0), (self.blocks_file_sink_0, 0))
+        self.connect((self.vocoder_g721_encode_sb_0, 0), (self.blocks_stream_to_tagged_stream_0, 0))
+        self.connect((self.audio_source_0, 0), (self.blocks_float_to_short_0, 0))
+        self.connect((self.blocks_float_to_short_0, 0), (self.vocoder_g721_encode_sb_0, 0))
+        self.connect((self.blocks_short_to_float_0, 0), (self.audio_sink_0, 0))
+        self.connect((self.blocks_pdu_to_tagged_stream_0, 0), (self.vocoder_g721_decode_bs_0, 0))
+        self.connect((self.vocoder_g721_decode_bs_0, 0), (self.blocks_short_to_float_0, 0))
+        self.connect((self.lte_sat_tag_appender_1, 0), (self.blocks_tagged_stream_to_pdu_0, 0))
+        self.connect((self.lte_sat_tag_appender_0, 0), (self.lte_sat_tag_appender_1, 0))
+
+        ##################################################
+        # Asynch Message Connections
+        ##################################################
+        self.msg_connect(self.lte_sat_layer2_0, "sched_info", self.lte_sat_dl_subframe_mapper_0_0, "sched_info")
+        self.msg_connect(self.blocks_tagged_stream_to_pdu_0, "pdus", self.lte_sat_layer2_0, "tx_data")
+        self.msg_connect(self.lte_sat_ul_baseband_sync_0, "TA", self.lte_sat_layer2_0, "sr_ta")
+        self.msg_connect(self.lte_sat_layer2_0, "sched_info", self.lte_sat_ul_subframe_demapper_0, "sched_for_ul")
+        self.msg_connect(self.lte_sat_ul_subframe_demapper_0, "SR", self.lte_sat_layer2_0, "sr_ta")
+        self.msg_connect(self.lte_sat_layer2_0, "rx_data", self.blocks_pdu_to_tagged_stream_0, "pdus")
+        self.msg_connect(self.lte_sat_layer2_0, "sched_info", self.lte_sat_ul_baseband_sync_0, "sched_for_ul")
+
+    def get_status(self):
+        status = {}
+        status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
+        status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
+        # status['ip'] = self.ip
+        # status['route'] = self.route
         return status
 
 class dl_ber_test_send(gr.top_block):
@@ -644,9 +753,10 @@ class MainFrame(wx.Frame):
         # print str(dict_status['stat_info'])
 
         self.DisplayText.Clear()
-        self.virtual_ip_t.SetValue(str(dict_status['ip']))
-        self.select_route_t.SetValue(str(dict_status['route']))        
-        self.DisplayText.AppendText(str(dict_status['stat_info']))
+        # self.virtual_ip_t.SetValue(str(dict_status['ip']))
+        # self.select_route_t.SetValue(str(dict_status['route']))        
+        self.DisplayText.AppendText(str(dict_status['stat_info_0']))
+        self.DisplayText.AppendText(str(dict_status['stat_info_1']))
 
     def createframe(self):
 
