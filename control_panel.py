@@ -1403,11 +1403,11 @@ class MainFrame(wx.Frame):
         try: s_num = self.param_config.getint("work_mod", "s_num")
         except: s_num = 0
 
-        ip_st = wx.StaticText(self.panel, -1, u"IP地址 :")  
+        ip_st = wx.StaticText(self.panel, -1, u"IP地址 :")
         self.IPText = wx.TextCtrl(self.panel, -1, s_ip)  
         # self.IPText.SetBackgroundColour('#c2e6f8')
         # self.IPText.SetForegroundColour('black')
-        port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
+        port_st = wx.StaticText(self.panel, -1, u"端口号 :")
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
         # self.PortText.SetBackgroundColour('#c2e6f8')
         # self.PortText.SetForegroundColour('black')
