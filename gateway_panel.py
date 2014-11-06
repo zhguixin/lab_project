@@ -209,6 +209,7 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
 
             self.dl_rate = dl_rate = float(param['exp_code_rate_d_G'])
             self.ul_rate = ul_rate = float(param['exp_code_rate_u_G'])
+            self.threshold = threshold = float(param['Threshold'])
             self.cell_id = cell_id = int(param['id_cell'])
             self.gain_r = gain_r = int(param['gain_r_G'])
             self.gain_s = gain_s = int(param['gain_s_G'])
@@ -327,6 +328,34 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
 
     def get_status(self):
         status = {}
+        status_temp = {}
+        status_temp['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_wrong_mac_pdu_count
+        status_temp['rx_right_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_count
+        status_temp['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_bytes
+        status_temp['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_bps
+        status_temp['rx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_pdu_count
+        status_temp['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_pdu_bytes
+        status_temp['rx_rlc_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_pdu_bps
+        status_temp['rx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_sdu_count
+        status_temp['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_sdu_bytes
+        status_temp['rx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_sdu_bps
+        status_temp['tx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_count
+        status_temp['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bytes
+        status_temp['tx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bps
+
+        status['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_wrong_mac_pdu_count'])
+        status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_right_mac_pdu_count'])
+        status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_right_mac_pdu_bytes'])
+        status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_right_mac_pdu_bps'])
+        status['rx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_pdu_count'])
+        status['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_pdu_bytes'])
+        status['rx_rlc_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_pdu_bps'])
+        status['rx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_sdu_count'])
+        status['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_sdu_bytes'])
+        status['rx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_sdu_bps'])
+        status['tx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_sdu_count'])
+        status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_sdu_bytes'])
+        status['tx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_sdu_bps'])
         # status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
         # status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
         status['ip'] = self.ip
@@ -334,19 +363,6 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
         status['u_freq'] = self.u_center_freq
         status['d_freq'] = self.d_center_freq
 
-        status['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_wrong_mac_pdu_count
-        status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_count
-        status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_bytes
-        status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_bps
-        status['rx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_pdu_count
-        status['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_pdu_bytes
-        status['rx_rlc_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_pdu_bps
-        status['rx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_sdu_count
-        status['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_sdu_bytes
-        status['rx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_sdu_bps
-        status['tx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_count
-        status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bytes
-        status['tx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bps       
         return status
 
 class dl_ber_test_send(gr.top_block):
@@ -951,8 +967,8 @@ class MainFrame(wx.Frame):
             # self.tb = eNB_ping(**param)
             # self.tb = dl_test(**param)
             self.tb = eNB_ping_15prb_one65_audio(**param)
-            os.system('sudo ifconfig tun0 192.168.200.3')
-            os.system('sudo route add 192.168.200.12 dev tun0')
+            # os.system('sudo ifconfig tun0 192.168.200.3')
+            # os.system('sudo route add 192.168.200.12 dev tun0')
         elif param['work_mod'] == '0':
             self.tb = dl_ber_test_send(**param)
         elif param['work_mod'] == '2':
@@ -1045,6 +1061,16 @@ class Detail_Dialog(wx.Frame):
         'tx_rlc_sdu_bytes',
         'tx_rlc_sdu_bps']
 
+        list_meaning = ['RX CRC错误总包数',
+        'RX CRC错误字节数',
+        'RX CRC正确总包数',
+        'RX CRC正确字节数',
+        'MAC==>RLC总包数',
+        'MAC==>RLC字节数',
+        'RLC==>高层总包数',
+        'RLC==>高层字节数'
+        ]
+
         colLabels = ['名称','值','含义']
 
         self.grid = wx.grid.Grid(self)
@@ -1058,6 +1084,8 @@ class Detail_Dialog(wx.Frame):
         attr2 = wx.grid.GridCellAttr()
         attr2.SetReadOnly(True)
         attr2.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
+        # attr2.SetTextColour("navyblue")
+        # attr2.SetBackgroundColour("pink")
         self.grid.SetColAttr(0, attr2)
 
         self.grid.SetColSize(0, 200)
@@ -1074,8 +1102,8 @@ class Detail_Dialog(wx.Frame):
         # for row in range(len(list_value)):
         #     self.grid.SetCellValue(row, 1, str(list_value[row]))
 
-        for row in range(len(list_variable)):
-            self.grid.SetCellValue(row, 2, list_variable[row])
+        for row in range(len(list_meaning)):
+            self.grid.SetCellValue(row, 2, list_meaning[row])
 
         # num_list = [0,1,2,5,6,36,37,38,39]
         num_list = range(len(list_variable))
@@ -1101,18 +1129,18 @@ class Detail_Dialog(wx.Frame):
         """
         dict_status = msg.data
 
-        list_value = [dict_status['rx_wrong_mac_pdu_count'],
-        dict_status['rx_right_mac_pdu_count'],
-        dict_status['rx_right_mac_pdu_bytes'],
+        list_value = [dict_status['rx_wrong_mac_pdu_count'] + ' packet',
+        dict_status['rx_right_mac_pdu_count']+' packet',
+        dict_status['rx_right_mac_pdu_bytes']+' bytes',
         dict_status['rx_right_mac_pdu_bps'],
-        dict_status['rx_rlc_pdu_count'],
-        dict_status['rx_rlc_pdu_bytes'],
+        dict_status['rx_rlc_pdu_count']+' packet',
+        dict_status['rx_rlc_pdu_bytes']+' bytes',
         dict_status['rx_rlc_pdu_bps'],
-        dict_status['rx_rlc_sdu_count'],
-        dict_status['rx_rlc_sdu_bytes'],
+        dict_status['rx_rlc_sdu_count']+' packet',
+        dict_status['rx_rlc_sdu_bytes']+' bytes',
         dict_status['rx_rlc_sdu_bps'],
-        dict_status['tx_rlc_sdu_count'],
-        dict_status['tx_rlc_sdu_bytes'],
+        dict_status['tx_rlc_sdu_count']+' packet',
+        dict_status['tx_rlc_sdu_bytes']+' bytes',
         dict_status['tx_rlc_sdu_bps']]
 
         for row in range(len(list_value)):
