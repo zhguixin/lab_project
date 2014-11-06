@@ -58,22 +58,24 @@ class Terminal(wx.Panel):
         except: s_threshold = '0.85'
 
         #上行中心频率
-        u_frequency_list = ['20','800']
+        # u_frequency_list = ['20','800']
         u_frequency_st = wx.StaticText(self, -1, u"上行中心频率(MHz):")
         # self.u_frequency = wx.SpinCtrl(self, -1, "", (-1, -1))
         # self.u_frequency.SetRange(1980,2010)
         # self.u_frequency.SetValue(s_u_frequency)
-        self.u_frequency = wx.ComboBox(self, -1, s_u_frequency, wx.DefaultPosition,
-         wx.DefaultSize, u_frequency_list, 0)
+        # self.u_frequency = wx.ComboBox(self, -1, s_u_frequency, wx.DefaultPosition,
+        #  wx.DefaultSize, u_frequency_list, 0)
+        self.u_frequency = wx.TextCtrl(self,-1,s_u_frequency)
 
         #下行中心频率
-        d_frequency_list = ['40','900']
+        # d_frequency_list = ['40','900']
         d_frequency_st = wx.StaticText(self, -1, u"下行中心频率(MHz):")
         # self.d_frequency = wx.SpinCtrl(self, -1, "", (-1, -1))
         # self.d_frequency.SetRange(2170,2200)
         # self.d_frequency.SetValue(s_d_frequency)
-        self.d_frequency = wx.ComboBox(self, -1, s_d_frequency, wx.DefaultPosition,
-         wx.DefaultSize, d_frequency_list, 0)
+        # self.d_frequency = wx.ComboBox(self, -1, s_d_frequency, wx.DefaultPosition,
+        #  wx.DefaultSize, d_frequency_list, 0)
+        self.d_frequency = wx.TextCtrl(self,-1,s_d_frequency)
 
         # m_part优化算法插零数
         m_part_list = ['1','2','4']
@@ -826,22 +828,24 @@ class Gateway_station(wx.Panel):
         self.modtype_d = wx.ComboBox(self, -1, s_modtype_d, wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
 
         #上行中心频率
-        u_frequency_list = ['20','800']
+        # u_frequency_list = ['20','800']
         u_frequency_st = wx.StaticText(self, -1, u"上行中心频率(MHz):")
         # self.u_frequency = wx.SpinCtrl(self, -1, "", (-1, -1))
         # self.u_frequency.SetRange(1980,2010)
         # self.u_frequency.SetValue(s_u_frequency)
-        self.u_frequency = wx.ComboBox(self, -1, s_u_frequency, wx.DefaultPosition,
-         wx.DefaultSize, u_frequency_list, 0)
+        # self.u_frequency = wx.ComboBox(self, -1, s_u_frequency, wx.DefaultPosition,
+        #  wx.DefaultSize, u_frequency_list, 0)
+        self.u_frequency = wx.TextCtrl(self,-1,s_u_frequency)
 
         #下行中心频率
-        d_frequency_list = ['40','900']
+        # d_frequency_list = ['40','900']
         d_frequency_st = wx.StaticText(self, -1, u"下行中心频率(MHz):")
         # self.d_frequency = wx.SpinCtrl(self, -1, "", (-1, -1))
         # self.d_frequency.SetRange(1980,2010)
         # self.d_frequency.SetValue(s_d_frequency)
-        self.d_frequency = wx.ComboBox(self, -1, s_d_frequency, wx.DefaultPosition,
-         wx.DefaultSize, d_frequency_list, 0)        
+        # self.d_frequency = wx.ComboBox(self, -1, s_d_frequency, wx.DefaultPosition,
+        #  wx.DefaultSize, d_frequency_list, 0)
+        self.d_frequency = wx.TextCtrl(self,-1,s_d_frequency)   
 
         #高级按钮
         self.senior_button = wx.Button(self, -1, u"高级")
@@ -896,7 +900,6 @@ class Gateway_station(wx.Panel):
         self.senior_button.Disable()
 
     def OnCloseWindow_SDG(self,event):
-        print 'OnCloseWindow_SDG...'
         self.senior_button.Enable()
         self.seniordialog.Destroy()
 
@@ -1229,7 +1232,6 @@ class SeniorDialog_Gateway(wx.Frame):
         self.dialog.Show()
 
     def OnCloseWindow(self):
-        print 'close SeniorDialog_Gateway ...'
         self.Destroy()
         self.dialog.Destroy()
 

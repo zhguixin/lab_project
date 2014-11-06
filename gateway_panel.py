@@ -85,6 +85,7 @@ class eNB_ping_15prb_one65_video(gr.top_block):
         # self.rnti = rnti = 65
         # self.prbl = prbl = 15
         # print ip,route
+        print 'eNB_ping_15prb_one65_video'
 
         self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(rnti, prbl)
         self.variable_ul_para_0.set_cch_period(10, 4)
@@ -215,7 +216,9 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
             self.route = route = param['route']
             self.u_center_freq = u_center_freq = int(param['u_frequency_G'])
             self.d_center_freq = d_center_freq = int(param['d_frequency_G'])
-        except: print '变量初始化失败'        
+        except: print '变量初始化失败'
+
+        print 'eNB_ping_15prb_one65_audio'
         # self.rnti = rnti = 65
         # self.prbl = prbl = 15
         self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(rnti, prbl)
@@ -324,8 +327,8 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
 
     def get_status(self):
         status = {}
-        status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
-        status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
+        # status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
+        # status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
         status['ip'] = self.ip
         status['route'] = self.route
         status['u_freq'] = self.u_center_freq
@@ -351,6 +354,7 @@ class dl_ber_test_send(gr.top_block):
     def __init__(self,**param):
         gr.top_block.__init__(self, "Dl Ber Test Send")
 
+        print 'dl_ber_test_send'
         ##################################################
         # Variables
         ##################################################
@@ -675,8 +679,8 @@ class MainFrame(wx.Frame):
         self.DisplayText.Clear()
         self.virtual_ip_t.SetValue(str(dict_status['ip']))
         self.select_route_t.SetValue(str(dict_status['route']))        
-        self.DisplayText.AppendText(str(dict_status['stat_info_0']))
-        self.DisplayText.AppendText(str(dict_status['stat_info_1']))
+        # self.DisplayText.AppendText(str(dict_status['stat_info_0']))
+        # self.DisplayText.AppendText(str(dict_status['stat_info_1']))
 
     def createframe(self):
 
@@ -775,7 +779,13 @@ class MainFrame(wx.Frame):
 
     def Detail(self,event):
         self.detail_dlg = Detail_Dialog(None)
+        self.detail_dlg.Bind(wx.EVT_CLOSE, self.OnCloseWindowDetail)
         self.detail_dlg.Show()
+        self.detail_button.Disable()
+
+    def OnCloseWindowDetail(self,event):
+        self.detail_button.Enable()
+        self.detail_dlg.Destroy()
 
     def OnConnect(self, event):
         self.IPText.Disable()
@@ -837,9 +847,9 @@ class MainFrame(wx.Frame):
         outputs = []
 
         # 消息队列
-        self.message_queues = {} 
+        self.message_queues = {}
 
-        while self.inputs:  
+        while self.inputs:
             readable, writable, exceptional = select.select(self.inputs, outputs, self.inputs)  
               
             #处理input
@@ -993,7 +1003,12 @@ class MainFrame(wx.Frame):
         #     self.client.close() 
         #     self.Destroy()
         # except:
-        self.Destroy()
+        try:
+            self.Destroy()
+            if isinstance(self.detail_dlg,Detail_Dialog) == True:
+                self.detail_dlg.Destroy()
+        except:
+            self.Destroy()
 
     def start_streaming(self):
         str_streming = "vlc -vvv file:///home/lh/Bunny_HD_15Mbps.h264 --sout '#transcode{vcodec=h264,vb=0,scale=0,acodec=none}:duplicate{dst=rtp{dst=127.0.0.1,port=5004,mux=ts,ttl=1},dst=display}'"
@@ -1013,12 +1028,30 @@ class Detail_Dialog(wx.Frame):
         Publisher().subscribe(self.updateDisplay, "update")
 
     def DetailPanel(self):
+        self.update_button = wx.Button(self, -1, u"更新")
+        self.Bind(wx.EVT_BUTTON, self.OnConnect, self.update_button)
+
+        list_variable = ['rx_wrong_mac_pdu_count',
+        'rx_right_mac_pdu_count',
+        'rx_right_mac_pdu_bytes',
+        'rx_right_mac_pdu_bps',
+        'rx_rlc_pdu_count',
+        'rx_rlc_pdu_bytes',
+        'rx_rlc_pdu_bps',
+        'rx_rlc_sdu_count',
+        'rx_rlc_sdu_bytes',
+        'rx_rlc_sdu_bps',
+        'tx_rlc_sdu_count',
+        'tx_rlc_sdu_bytes',
+        'tx_rlc_sdu_bps']
+
+        colLabels = ['名称','值','含义']
+
         self.grid = wx.grid.Grid(self)
-        self.grid.CreateGrid(16,3)
+        self.grid.CreateGrid(len(list_variable),len(colLabels))
 
         attr1 = wx.grid.GridCellAttr()
         attr1.SetReadOnly(True)
-        # attr1.SetBackgroundColour("white")
         for row in range(4):
             self.grid.SetColAttr(row+1, attr1)
 
@@ -1027,22 +1060,10 @@ class Detail_Dialog(wx.Frame):
         attr2.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.grid.SetColAttr(0, attr2)
 
-        # grid.SetCellSize(0, 0, 7, 1)
-        # grid.SetCellSize(0, 5, 7, 1)
-        # grid.SetCellSize(7, 0, 33, 1)
-        # grid.SetCellSize(7, 5, 33, 1)
-
         self.grid.SetColSize(0, 200)
         self.grid.SetColSize(1, 150)
         self.grid.SetColSize(2, 320)
 
-        list_variable = ['wrong_rx_mac_pdu_count','wrong_rx_mac_pdu_bytes',
-        'rx_right_mac_pdu_count','rx_right_mac_pdu_bytes','rx_right_mac_pdu_bps',
-        'rx_rlc_pdu_count','rx_rlc_pdu_bytes','rx_rlc_sdu_count','rx_rlc_sdu_bytes',
-        'total_usg_num','discard_usg_num','tx_sr_num','tx_rlc_sdu_count',
-        'tx_rlc_sdu_bytes','tx_rlc_pdu_count','tx_rlc_pdu_bytes']
-
-        colLabels = ['名称','值','含义']
 
         for row in range(len(colLabels)):
             self.grid.SetColLabelValue(row, colLabels[row])
@@ -1057,9 +1078,22 @@ class Detail_Dialog(wx.Frame):
             self.grid.SetCellValue(row, 2, list_variable[row])
 
         # num_list = [0,1,2,5,6,36,37,38,39]
-        num_list = range(16)
+        num_list = range(len(list_variable))
         for num in num_list:
             self.grid.SetRowSize(num, 40)
+
+        sizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer1.Add((20,20), 0)
+        sizer1.Add(self.grid, 0, wx.ALIGN_RIGHT)
+        sizer1.Add(self.update_button, 0, wx.ALIGN_RIGHT)
+
+        self.SetSizer(sizer1)
+        self.Fit()
+
+    def OnConnect(self,event):
+        list_value = [1,1,1,1,'ff','ll']
+        for row in range(len(list_value)):
+            self.grid.SetCellValue(row, 1, str(list_value[row]))
 
     def updateDisplay(self, msg):
         """
@@ -1067,22 +1101,19 @@ class Detail_Dialog(wx.Frame):
         """
         dict_status = msg.data
 
-        list_value = [dict_status['wrong_rx_mac_pdu_count'],
-        dict_status['wrong_rx_mac_pdu_bytes'],
+        list_value = [dict_status['rx_wrong_mac_pdu_count'],
         dict_status['rx_right_mac_pdu_count'],
         dict_status['rx_right_mac_pdu_bytes'],
         dict_status['rx_right_mac_pdu_bps'],
         dict_status['rx_rlc_pdu_count'],
         dict_status['rx_rlc_pdu_bytes'],
+        dict_status['rx_rlc_pdu_bps'],
         dict_status['rx_rlc_sdu_count'],
         dict_status['rx_rlc_sdu_bytes'],
-        dict_status['total_usg_num'],
-        dict_status['discard_usg_num'],
-        dict_status['tx_sr_num'],
+        dict_status['rx_rlc_sdu_bps'],
         dict_status['tx_rlc_sdu_count'],
         dict_status['tx_rlc_sdu_bytes'],
-        dict_status['tx_rlc_pdu_count'],
-        dict_status['tx_rlc_pdu_bytes']]
+        dict_status['tx_rlc_sdu_bps']]
 
         for row in range(len(list_value)):
             self.grid.SetCellValue(row, 1, str(list_value[row]))

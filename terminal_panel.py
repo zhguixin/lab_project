@@ -17,7 +17,8 @@ from gnuradio.filter import firdes
 from optparse import OptionParser
 import lte_sat
 
-import wx  
+import wx
+import wx.grid
 import sys
 import os
 import threading
@@ -88,6 +89,7 @@ class ue65_ping_15prb_video(gr.top_block):
         print u_center_freq,d_center_freq
         # self.prbl = prbl = 15
         # print ip,route
+        print 'ue65_ping_15prb_video'
 
         self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(rnti, prbl)
         self.variable_ul_para_0.set_cch_period(10, 4)
@@ -191,6 +193,8 @@ class ue65_ping_15prb_video(gr.top_block):
 
         status['ip'] = self.ip
         status['route'] = self.route
+        status['u_freq'] = self.u_center_freq
+        status['d_freq'] = self.d_center_freq        
         return status
 
 class ue65_ping_15prb_audio(gr.top_block):
@@ -224,6 +228,8 @@ class ue65_ping_15prb_audio(gr.top_block):
             self.u_center_freq = u_center_freq = int(param['u_frequency_T'])
             self.d_center_freq = d_center_freq = int(param['d_frequency_T'])
         except: print '变量初始化失败'
+
+        print 'ue65_ping_15prb_audio'
 
         self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(rnti, 6)
         self.variable_ul_para_0.set_cch_period(10, 4)
@@ -337,7 +343,29 @@ class ue65_ping_15prb_audio(gr.top_block):
 
         status['ue_stat_info_0'] = self.lte_sat_layer2_ue_0.get_ue_stat_info_string(0)
         status['ue_stat_info_1'] = self.lte_sat_layer2_ue_0.get_ue_stat_info_string(1)
+        status['ip'] = self.ip
+        status['route'] = self.route        
+        status['u_freq'] = self.u_center_freq
+        status['d_freq'] = self.d_center_freq
 
+        status['wrong_rx_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_count
+        status['wrong_rx_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_bytes
+        status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_count
+        status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bytes
+        status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bps
+        status['rx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_count
+        status['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_bytes
+        status['rx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_count
+        status['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_bytes
+
+        status['total_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().total_usg_num
+        status['discard_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().discard_usg_num
+        status['tx_sr_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_sr_num
+
+        status['tx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_count
+        status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_bytes
+        status['tx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_count
+        status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_bytes        
         return status
 
 class dl_ber_test_recv(gr.top_block):
@@ -374,6 +402,7 @@ class dl_ber_test_recv(gr.top_block):
             self.RNTI_A = RNTI_A = int(param['RNTI'])
         except: print '变量初始化失败'
 
+        print 'dl_ber_test_recv'
         ##################################################
         # Blocks
         ##################################################
@@ -742,8 +771,8 @@ class MainFrame(wx.Frame):
             self.process_state.state_red()
         self.id_cell_t.SetValue(str(dict_status['cell_id']))
         self.rnti_t.SetValue(str(dict_status['rnti']))
-        self.virtual_ip_t.SetValue(str(dict_status['ip']))
-        self.select_route_t.SetValue(str(dict_status['route']))
+        # self.virtual_ip_t.SetValue(str(dict_status['ip']))
+        # self.select_route_t.SetValue(str(dict_status['route']))
         self.bandwidth_t.SetValue(str(dict_status['prbl']))
         self.cfo.SetValue(str(dict_status['cfo']))
         self.fte.SetValue(str(dict_status['fte']))
@@ -771,6 +800,12 @@ class MainFrame(wx.Frame):
         bandwidth = wx.StaticText(self.panel, -1, u'系统带宽:')
         self.bandwidth_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
 
+        # 上下行中心频率
+        u_frequency_st = wx.StaticText(self.panel, -1, u"上行中心频率(MHz):")
+        self.u_frequency = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        d_frequency_st = wx.StaticText(self.panel, -1, u"下行中心频率(MHz):")
+        self.d_frequency = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+
         #实时载波频率偏差值
         cfo_st = wx.StaticText(self.panel, -1, u"实时载波频率偏差:")
         self.cfo = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
@@ -783,13 +818,13 @@ class MainFrame(wx.Frame):
         pss_pos_st = wx.StaticText(self.panel, -1, u"峰值位置:")
         self.pss_pos = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
 
-        #虚拟ip地址
-        virtual_ip = wx.StaticText(self.panel, -1, u"虚拟ip地址:")
-        self.virtual_ip_t = wx.TextCtrl(self.panel, -1, "192.168.200.11", style=wx.TE_READONLY)
+        # #虚拟ip地址
+        # virtual_ip = wx.StaticText(self.panel, -1, u"虚拟ip地址:")
+        # self.virtual_ip_t = wx.TextCtrl(self.panel, -1, "192.168.200.11", style=wx.TE_READONLY)
 
-        #选择路由
-        select_route = wx.StaticText(self.panel, -1, u"选择路由:")
-        self.select_route_t = wx.TextCtrl(self.panel, -1, "192.168.200.3", style=wx.TE_READONLY)
+        # #选择路由
+        # select_route = wx.StaticText(self.panel, -1, u"选择路由:")
+        # self.select_route_t = wx.TextCtrl(self.panel, -1, "192.168.200.3", style=wx.TE_READONLY)
 
         #主同步状态是否锁定
         pss_status_st = wx.StaticText(self.panel, -1, u"主同步状态:\t\t\t")
@@ -830,6 +865,11 @@ class MainFrame(wx.Frame):
         self.detail_button.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON,self.Detail,self.detail_button)
 
+        self.detail_button_grid = wx.Button(self.panel, -1, u"详细显示之二")
+        self.detail_button_grid.SetBackgroundColour('black')
+        self.detail_button_grid.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON,self.Detail_1,self.detail_button_grid)     
+
         #连接按钮
         self.connect_button = wx.Button(self.panel, -1, u"连接")
         self.connect_button.SetBackgroundColour('black')
@@ -846,11 +886,11 @@ class MainFrame(wx.Frame):
         except: s_port = '7000'
 
         ip_st = wx.StaticText(self.panel, -1, u"IP地址 :")
-        self.IPText = wx.TextCtrl(self.panel, -1, s_ip)  
+        self.IPText = wx.TextCtrl(self.panel, -1, s_ip)
         port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
 
-        #######开始布局############
+        ###########开始布局############
         sizer1 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer1.AddGrowableCol(1)
         sizer1.Add(id_cell, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
@@ -858,17 +898,21 @@ class MainFrame(wx.Frame):
         sizer1.Add(rnti, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.rnti_t, 0, wx.EXPAND)
         sizer1.Add(bandwidth, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.bandwidth_t, 0, wx.EXPAND)
+        sizer1.Add(self.bandwidth_t, 0, wx.EXPAND)    
         sizer1.Add(pss_pos_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.pss_pos, 0, wx.EXPAND)
-        sizer1.Add(virtual_ip, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.virtual_ip_t, 0, wx.EXPAND)
-        sizer1.Add(select_route, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.select_route_t, 0, wx.EXPAND)
+        # sizer1.Add(virtual_ip, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        # sizer1.Add(self.virtual_ip_t, 0, wx.EXPAND)
+        # sizer1.Add(select_route, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        # sizer1.Add(self.select_route_t, 0, wx.EXPAND)
         sizer1.Add(fte_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.fte, 0, wx.EXPAND)
         sizer1.Add(cfo_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.cfo, 0, wx.EXPAND)
+        sizer1.Add(u_frequency_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.u_frequency, 0, wx.EXPAND)
+        sizer1.Add(d_frequency_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.d_frequency, 0, wx.EXPAND)
 
         sizer11 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer11.AddGrowableCol(1)
@@ -897,6 +941,8 @@ class MainFrame(wx.Frame):
         sizer_detail = wx.BoxSizer(wx.HORIZONTAL)
         sizer_detail.Add((10,10), 1)
         sizer_detail.Add(self.detail_button, 0, wx.ALIGN_RIGHT)
+        sizer_detail.Add((10,10), 0)
+        sizer_detail.Add(self.detail_button_grid, 0, wx.ALIGN_RIGHT)
 
         sizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'状态显示'), wx.VERTICAL)
         sizer2.Add(sizer1, 0, wx.EXPAND | wx.ALL, 10)
@@ -931,6 +977,12 @@ class MainFrame(wx.Frame):
         #自动调整界面尺寸
         self.panel.SetSizer(box1)
 
+    def Detail_1(self,event):
+        self.detail_dlg = Detail_Dialog(None)
+        self.detail_dlg.Bind(wx.EVT_CLOSE, self.OnCloseWindowDetail_1)
+        self.detail_dlg.Show()
+        self.detail_button_grid.Disable()
+    
     def Detail(self,event):
         self.detaildialog = DetailDialog_Display(None)
         self.detaildialog.Bind(wx.EVT_CLOSE, self.OnCloseWindowDetail)
@@ -940,6 +992,10 @@ class MainFrame(wx.Frame):
     def OnCloseWindowDetail(self,event):
         self.detail_button.Enable()
         self.detaildialog.Destroy()
+
+    def OnCloseWindowDetail_1(self,event):
+        self.detail_button_grid.Enable()
+        self.detail_dlg.Destroy()        
 
     def OnConnect(self, event):
         self.IPText.Disable()
@@ -994,7 +1050,7 @@ class MainFrame(wx.Frame):
         self.t3.start()
 
         # 读socket
-        self.inputs = [ self.client ] 
+        self.inputs = [ self.client ]
 
         # 写socket
         outputs = []
@@ -1041,7 +1097,7 @@ class MainFrame(wx.Frame):
                     self.inputs.remove(s)  
                     s.close()  
                     # Remove message queue  
-                    del self.message_queues[s]  
+                    del self.message_queues[s]
 
             # Handle outputs  
             for s in writable:  
@@ -1058,12 +1114,12 @@ class MainFrame(wx.Frame):
             for s in exceptional:  
                 print 'handling exceptional condition for', s.getpeername()    
                 # Stop listening for input on the connection  
-                self.inputs.remove(s)  
+                self.inputs.remove(s)
                 if s in outputs:  
-                    outputs.remove(s)  
+                    outputs.remove(s)
                 s.close()  
-                # Remove message queue  
-                del self.message_queues[s]   
+                # Remove message queue
+                del self.message_queues[s]
     
     def monitor_update(self): 
         while True:
@@ -1143,8 +1199,8 @@ class MainFrame(wx.Frame):
         self.cfo.SetValue('0')
         self.fte.SetValue('0')
         self.pss_pos.SetValue('0')
-        self.virtual_ip_t.SetValue('192.168.200.11')
-        self.select_route_t.SetValue('192.168.200.3')
+        # self.virtual_ip_t.SetValue('192.168.200.11')
+        # self.select_route_t.SetValue('192.168.200.3')
         self.id_cell_t.SetValue('0')
         self.rnti_t.SetValue('0')
         self.bandwidth_t.SetValue('0')
@@ -1157,8 +1213,16 @@ class MainFrame(wx.Frame):
             self.client.send(data_status)
             self.client.close() 
             self.Destroy()
+            if isinstance(self.detaildialog,DetailDialog_Display) == True:
+                self.detaildialog.Destroy()
+            if isinstance(self.detail_dlg,Detail_Dialog) == True:
+                self.detail_dlg.Destroy()                
         except:
             self.Destroy()
+            if isinstance(self.detaildialog,DetailDialog_Display) == True:
+                self.detaildialog.Destroy()
+            if isinstance(self.detail_dlg,Detail_Dialog) == True:
+                self.detail_dlg.Destroy()                
 
     def start_play(self):
         str_play = "vlc rtp://@:5004"
@@ -1167,7 +1231,7 @@ class MainFrame(wx.Frame):
 
 class DetailDialog_Display(wx.Frame):
     def __init__(self, parent):
-        wx.Frame.__init__(self, None, title=u'详细显示界面',size=(550,450),
+        wx.Frame.__init__(self, None, title=u'详细显示界面',size=(550,500),
             style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         self.Centre()
         # self.parent = parent
@@ -1193,6 +1257,9 @@ class DetailDialog_Display(wx.Frame):
         self.fn.SetLabel(str(dict_status['fn']))
         self.sfn.SetLabel(str(dict_status['sfn']))
 
+        self.virtual_ip_t.SetLabel(str(dict_status['ip']))
+        self.select_route_t.SetLabel(str(dict_status['route']))        
+
     def DetailPanel(self):
 
         self.DisplayText = wx.TextCtrl(self.panel, -1, '',   
@@ -1212,9 +1279,21 @@ class DetailDialog_Display(wx.Frame):
         sfn_st = wx.StaticText(self.panel, -1, u"子帧号:\t")
         self.sfn = wx.StaticText(self.panel, -1, '')
 
+        #虚拟ip地址
+        virtual_ip = wx.StaticText(self.panel, -1, u"虚拟ip地址:")
+        self.virtual_ip_t = wx.StaticText(self.panel, -1, "192.168.200.11")
+
+        #选择路由
+        select_route = wx.StaticText(self.panel, -1, u"选择路由:")
+        self.select_route_t = wx.StaticText(self.panel, -1, "192.168.200.3")
+
         sizer1 = wx.FlexGridSizer(cols=4, hgap=10, vgap=10)
         sizer1.AddGrowableCol(1)
         sizer1.AddGrowableCol(3)
+        sizer1.Add(virtual_ip, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.virtual_ip_t, 0, wx.EXPAND)
+        sizer1.Add(select_route, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.select_route_t, 0, wx.EXPAND)                
         sizer1.Add(frame_error_rate, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.frame_error_rate_value, 0, wx.EXPAND)
         sizer1.Add(mac_pdu, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -1236,6 +1315,103 @@ class DetailDialog_Display(wx.Frame):
 
         self.panel.SetSizer(hbox1)
         self.panel.Fit()
+
+class Detail_Dialog(wx.Frame):
+
+    def __init__(self,parent):
+        wx.Frame.__init__(self, None, title=u'详细显示界面',
+                          size=(760,600))
+        self.Centre()
+        self.parent = parent
+
+        #创建面板
+        self.DetailPanel()
+        Publisher().subscribe(self.updateDisplay, "update")
+
+    def DetailPanel(self):
+        self.update_button = wx.Button(self, -1, u"更新")
+        self.Bind(wx.EVT_BUTTON, self.OnConnect, self.update_button)
+
+        self.grid = wx.grid.Grid(self)
+        self.grid.CreateGrid(16,3)
+
+        attr1 = wx.grid.GridCellAttr()
+        attr1.SetReadOnly(True)
+        for row in range(4):
+            self.grid.SetColAttr(row+1, attr1)
+
+        attr2 = wx.grid.GridCellAttr()
+        attr2.SetReadOnly(True)
+        attr2.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
+        self.grid.SetColAttr(0, attr2)
+
+        self.grid.SetColSize(0, 200)
+        self.grid.SetColSize(1, 150)
+        self.grid.SetColSize(2, 320)
+
+        list_variable = ['wrong_rx_mac_pdu_count','wrong_rx_mac_pdu_bytes',
+        'rx_right_mac_pdu_count','rx_right_mac_pdu_bytes','rx_right_mac_pdu_bps',
+        'rx_rlc_pdu_count','rx_rlc_pdu_bytes','rx_rlc_sdu_count','rx_rlc_sdu_bytes',
+        'total_usg_num','discard_usg_num','tx_sr_num','tx_rlc_sdu_count',
+        'tx_rlc_sdu_bytes','tx_rlc_pdu_count','tx_rlc_pdu_bytes']
+
+        colLabels = ['名称','值','含义']
+
+        for row in range(len(colLabels)):
+            self.grid.SetColLabelValue(row, colLabels[row])
+
+        for row in range(len(list_variable)):
+            self.grid.SetCellValue(row, 0, list_variable[row])
+
+        # for row in range(len(list_value)):
+        #     self.grid.SetCellValue(row, 1, str(list_value[row]))
+
+        for row in range(len(list_variable)):
+            self.grid.SetCellValue(row, 2, list_variable[row])
+
+        # num_list = [0,1,2,5,6,36,37,38,39]
+        num_list = range(16)
+        for num in num_list:
+            self.grid.SetRowSize(num, 40)
+
+        sizer1 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer1.Add((20,20), 0)
+        sizer1.Add(self.grid, 0, wx.ALIGN_RIGHT)
+        sizer1.Add(self.update_button, 0, wx.ALIGN_RIGHT)
+
+        self.SetSizer(sizer1)
+        self.Fit()
+
+    def OnConnect(self,event):
+        list_value = [1,1,1,1,'ff','ll']
+        for row in range(len(list_value)):
+            self.grid.SetCellValue(row, 1, str(list_value[row]))
+
+    def updateDisplay(self, msg):
+        """
+        从线程接收数据并且在界面更新显示
+        """
+        dict_status = msg.data
+
+        list_value = [dict_status['wrong_rx_mac_pdu_count'],
+        dict_status['wrong_rx_mac_pdu_bytes'],
+        dict_status['rx_right_mac_pdu_count'],
+        dict_status['rx_right_mac_pdu_bytes'],
+        dict_status['rx_right_mac_pdu_bps'],
+        dict_status['rx_rlc_pdu_count'],
+        dict_status['rx_rlc_pdu_bytes'],
+        dict_status['rx_rlc_sdu_count'],
+        dict_status['rx_rlc_sdu_bytes'],
+        dict_status['total_usg_num'],
+        dict_status['discard_usg_num'],
+        dict_status['tx_sr_num'],
+        dict_status['tx_rlc_sdu_count'],
+        dict_status['tx_rlc_sdu_bytes'],
+        dict_status['tx_rlc_pdu_count'],
+        dict_status['tx_rlc_pdu_bytes']]
+
+        for row in range(len(list_value)):
+            self.grid.SetCellValue(row, 1, str(list_value[row]))
 
 class MyApp(wx.App):
     def OnInit(self):
