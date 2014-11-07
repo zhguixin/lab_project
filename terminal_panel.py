@@ -323,6 +323,25 @@ class ue65_ping_15prb_audio(gr.top_block):
 
     def get_status(self):
         status = {}
+        status_temp = {}
+        status_temp['wrong_rx_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_count
+        status_temp['wrong_rx_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_bytes
+        status_temp['rx_right_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_count
+        status_temp['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bytes
+        status_temp['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bps
+        status_temp['rx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_count
+        status_temp['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_bytes
+        status_temp['rx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_count
+        status_temp['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_bytes
+
+        status_temp['total_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().total_usg_num
+        status_temp['discard_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().discard_usg_num
+
+        status_temp['tx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_count
+        status_temp['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_bytes
+        status_temp['tx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_count
+        status_temp['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_bytes
+
         status['cell_id'] = self.lte_sat_dl_baseband_sync_0.get_cell_id()
         status['prbl'] = self.lte_sat_dl_baseband_sync_0.get_prbl()
         status['pss_status'] = self.lte_sat_dl_baseband_sync_0.get_pss_status()
@@ -348,24 +367,24 @@ class ue65_ping_15prb_audio(gr.top_block):
         status['u_freq'] = self.u_center_freq
         status['d_freq'] = self.d_center_freq
 
-        status['wrong_rx_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_count
-        status['wrong_rx_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_bytes
-        status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_count
-        status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bytes
-        status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bps
-        status['rx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_count
-        status['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_bytes
-        status['rx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_count
-        status['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_bytes
+        status['wrong_rx_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['wrong_rx_mac_pdu_count'])
+        status['wrong_rx_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['wrong_rx_mac_pdu_bytes'])
+        status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_right_mac_pdu_count'])
+        status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_right_mac_pdu_bytes'])
+        status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_right_mac_pdu_bps'])
+        status['rx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_pdu_count'])
+        status['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_pdu_bytes'])
+        status['rx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_sdu_count'])
+        status['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_sdu_bytes'])
 
-        status['total_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().total_usg_num
-        status['discard_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().discard_usg_num
+        status['total_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['total_usg_num'])
+        status['discard_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['discard_usg_num'])
         status['tx_sr_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_sr_num
 
-        status['tx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_count
-        status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_bytes
-        status['tx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_count
-        status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_bytes        
+        status['tx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_sdu_count'])
+        status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_sdu_bytes'])
+        status['tx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_pdu_count'])
+        status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_pdu_bytes'])
         return status
 
 class dl_ber_test_recv(gr.top_block):
@@ -1216,7 +1235,7 @@ class MainFrame(wx.Frame):
             if isinstance(self.detaildialog,DetailDialog_Display) == True:
                 self.detaildialog.Destroy()
             if isinstance(self.detail_dlg,Detail_Dialog) == True:
-                self.detail_dlg.Destroy()                
+                self.detail_dlg.Destroy()            
         except:
             self.Destroy()
             if isinstance(self.detaildialog,DetailDialog_Display) == True:
@@ -1357,6 +1376,23 @@ class Detail_Dialog(wx.Frame):
 
         colLabels = ['名称','值','含义']
 
+        list_meaning = ['RX CRC错误总包数',
+        'RX CRC错误字节数',
+        'RX CRC正确总包数',
+        'RX CRC正确字节数',
+        '',
+        'MAC==>RLC总包数',
+        'MAC==>RLC字节数',
+        'RLC==>高层总包数',
+        'RLC==>高层字节数',
+        'RX 丢弃调度数目',
+        'RX 总调度的数目',
+        'TX 发送的SR数目',
+        'TX 高层==>RLC总包数',
+        'TX 高层==>RLC字节数',
+        'TX RLC==>MAC总包数',
+        'TX RLC==>MAC字节数']
+
         for row in range(len(colLabels)):
             self.grid.SetColLabelValue(row, colLabels[row])
 
@@ -1366,8 +1402,8 @@ class Detail_Dialog(wx.Frame):
         # for row in range(len(list_value)):
         #     self.grid.SetCellValue(row, 1, str(list_value[row]))
 
-        for row in range(len(list_variable)):
-            self.grid.SetCellValue(row, 2, list_variable[row])
+        for row in range(len(list_meaning)):
+            self.grid.SetCellValue(row, 2, list_meaning[row])
 
         # num_list = [0,1,2,5,6,36,37,38,39]
         num_list = range(16)
@@ -1393,22 +1429,22 @@ class Detail_Dialog(wx.Frame):
         """
         dict_status = msg.data
 
-        list_value = [dict_status['wrong_rx_mac_pdu_count'],
-        dict_status['wrong_rx_mac_pdu_bytes'],
-        dict_status['rx_right_mac_pdu_count'],
-        dict_status['rx_right_mac_pdu_bytes'],
+        list_value = [dict_status['wrong_rx_mac_pdu_count']+' packet',
+        dict_status['wrong_rx_mac_pdu_bytes']+' bytes',
+        dict_status['rx_right_mac_pdu_count']+' packet',
+        dict_status['rx_right_mac_pdu_bytes']+' bytes',
         dict_status['rx_right_mac_pdu_bps'],
-        dict_status['rx_rlc_pdu_count'],
-        dict_status['rx_rlc_pdu_bytes'],
-        dict_status['rx_rlc_sdu_count'],
-        dict_status['rx_rlc_sdu_bytes'],
+        dict_status['rx_rlc_pdu_count']+' packet',
+        dict_status['rx_rlc_pdu_bytes']+' bytes',
+        dict_status['rx_rlc_sdu_count']+' packet',
+        dict_status['rx_rlc_sdu_bytes']+' bytes',
         dict_status['total_usg_num'],
         dict_status['discard_usg_num'],
         dict_status['tx_sr_num'],
-        dict_status['tx_rlc_sdu_count'],
-        dict_status['tx_rlc_sdu_bytes'],
-        dict_status['tx_rlc_pdu_count'],
-        dict_status['tx_rlc_pdu_bytes']]
+        dict_status['tx_rlc_sdu_count']+' packet',
+        dict_status['tx_rlc_sdu_bytes']+' bytes',
+        dict_status['tx_rlc_pdu_count']+' packet',
+        dict_status['tx_rlc_pdu_bytes']+' bytes']
 
         for row in range(len(list_value)):
             self.grid.SetCellValue(row, 1, str(list_value[row]))

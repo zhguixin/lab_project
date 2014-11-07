@@ -330,6 +330,7 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
         status = {}
         status_temp = {}
         status_temp['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_wrong_mac_pdu_count
+        status_temp['rx_wrong_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_wrong_mac_pdu_bytes
         status_temp['rx_right_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_count
         status_temp['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_bytes
         status_temp['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_bps
@@ -342,8 +343,11 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
         status_temp['tx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_count
         status_temp['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bytes
         status_temp['tx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bps
+        status_temp['tx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_pdu_count
+        status_temp['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_pdu_bytes
 
         status['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_wrong_mac_pdu_count'])
+        status['rx_wrong_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_wrong_mac_pdu_bytes'])
         status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_right_mac_pdu_count'])
         status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_right_mac_pdu_bytes'])
         status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_right_mac_pdu_bps'])
@@ -356,6 +360,10 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
         status['tx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_sdu_count'])
         status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_sdu_bytes'])
         status['tx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_sdu_bps'])
+        status['tx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_pdu_count'])
+        status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_pdu_bytes'])
+        status['rx_sr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_sr_num
+        status['rx_bsr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_bsr_num
         # status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
         # status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
         status['ip'] = self.ip
@@ -1048,6 +1056,7 @@ class Detail_Dialog(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnConnect, self.update_button)
 
         list_variable = ['rx_wrong_mac_pdu_count',
+        'rx_wrong_mac_pdu_bytes',
         'rx_right_mac_pdu_count',
         'rx_right_mac_pdu_bytes',
         'rx_right_mac_pdu_bps',
@@ -1059,16 +1068,30 @@ class Detail_Dialog(wx.Frame):
         'rx_rlc_sdu_bps',
         'tx_rlc_sdu_count',
         'tx_rlc_sdu_bytes',
-        'tx_rlc_sdu_bps']
+        'tx_rlc_sdu_bps',
+        'rx_sr_num',
+        'rx_bsr_num',
+        'tx_rlc_pdu_count',
+        'tx_rlc_pdu_bytes']
 
         list_meaning = ['RX CRC错误总包数',
         'RX CRC错误字节数',
         'RX CRC正确总包数',
         'RX CRC正确字节数',
+        '',
         'MAC==>RLC总包数',
         'MAC==>RLC字节数',
+        '',
         'RLC==>高层总包数',
-        'RLC==>高层字节数'
+        'RLC==>高层字节数',
+        '',
+        'TX 高层==>RLC总包数',
+        'TX 高层==>RLC字节数',
+        '',
+        'eNB检测到的SR数',
+        'eNB检测到的BSR数',
+        'TX RLC==>MAC总包数',
+        'TX RLC==>MAC字节数'
         ]
 
         colLabels = ['名称','值','含义']
@@ -1129,7 +1152,8 @@ class Detail_Dialog(wx.Frame):
         """
         dict_status = msg.data
 
-        list_value = [dict_status['rx_wrong_mac_pdu_count'] + ' packet',
+        list_value = [dict_status['rx_wrong_mac_pdu_count']+' packet',
+        dict_status['rx_wrong_mac_pdu_bytes']+' bytes',
         dict_status['rx_right_mac_pdu_count']+' packet',
         dict_status['rx_right_mac_pdu_bytes']+' bytes',
         dict_status['rx_right_mac_pdu_bps'],
@@ -1141,7 +1165,11 @@ class Detail_Dialog(wx.Frame):
         dict_status['rx_rlc_sdu_bps'],
         dict_status['tx_rlc_sdu_count']+' packet',
         dict_status['tx_rlc_sdu_bytes']+' bytes',
-        dict_status['tx_rlc_sdu_bps']]
+        dict_status['tx_rlc_sdu_bps'],
+        dict_status['rx_sr_num'],
+        dict_status['rx_bsr_num'],
+        dict_status['tx_rlc_pdu_count']+' packet',
+        dict_status['tx_rlc_pdu_bytes']+' bytes']
 
         for row in range(len(list_value)):
             self.grid.SetCellValue(row, 1, str(list_value[row]))
