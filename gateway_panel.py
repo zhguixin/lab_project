@@ -168,12 +168,49 @@ class eNB_ping_15prb_one65_video(gr.top_block):
 
     def get_status(self):
         status = {}
+        status_temp = {}
+        status_temp['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_wrong_mac_pdu_count
+        status_temp['rx_wrong_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_wrong_mac_pdu_bytes
+        status_temp['rx_right_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_count
+        status_temp['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_bytes
+        status_temp['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_right_mac_pdu_bps
+        status_temp['rx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_pdu_count
+        status_temp['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_pdu_bytes
+        status_temp['rx_rlc_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_pdu_bps
+        status_temp['rx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_sdu_count
+        status_temp['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_sdu_bytes
+        status_temp['rx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().rx_rlc_sdu_bps
+        status_temp['tx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_count
+        status_temp['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bytes
+        status_temp['tx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bps
+        status_temp['tx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_pdu_count
+        status_temp['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_pdu_bytes        
+        
         status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
         status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
         status['ip'] = self.ip
         status['route'] = self.route
         status['u_freq'] = self.u_center_freq
         status['d_freq'] = self.d_center_freq
+
+        status['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_wrong_mac_pdu_count'])
+        status['rx_wrong_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_wrong_mac_pdu_bytes'])
+        status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_right_mac_pdu_count'])
+        status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_right_mac_pdu_bytes'])
+        status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_right_mac_pdu_bps'])
+        status['rx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_pdu_count'])
+        status['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_pdu_bytes'])
+        status['rx_rlc_pdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_pdu_bps'])
+        status['rx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_sdu_count'])
+        status['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_sdu_bytes'])
+        status['rx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_rlc_sdu_bps'])
+        status['tx_rlc_sdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_sdu_count'])
+        status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_sdu_bytes'])
+        status['tx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_sdu_bps'])
+        status['tx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_pdu_count'])
+        status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_pdu_bytes'])
+        status['rx_sr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_sr_num
+        status['rx_bsr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_bsr_num
         return status
 
 class eNB_ping_15prb_one65_audio(gr.top_block):
@@ -202,7 +239,7 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
                 self.ul_mod_type = ul_mod_type = 1
 
             if param['samp_rate_G'] == '2M':
-                self.samp_rate = samp_rate = 2e6 
+                self.samp_rate = samp_rate = 2e6
             else:
                 self.samp_rate = samp_rate = 4e6  
             self.rnti = rnti = 65
@@ -228,7 +265,7 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
         self.variable_ul_para_0.set_sch_params(4, 2)
         self.variable_ul_para_0.set_srs_transmissionComb(1)
         self.variable_ul_para_0.enable_bsr_persist(True)
-          
+        
         # self.samp_rate = samp_rate = 4e6
         # self.mod_type = mod_type = 1
         # self.fftl = fftl = 256

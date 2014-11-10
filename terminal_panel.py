@@ -170,6 +170,24 @@ class ue65_ping_15prb_video(gr.top_block):
 
     def get_status(self):
         status = {}
+        status_temp = {}
+        status_temp['wrong_rx_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_count
+        status_temp['wrong_rx_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_bytes
+        status_temp['rx_right_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_count
+        status_temp['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bytes
+        status_temp['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bps
+        status_temp['rx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_count
+        status_temp['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_bytes
+        status_temp['rx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_count
+        status_temp['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_bytes
+
+        status_temp['total_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().total_usg_num
+        status_temp['discard_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().discard_usg_num
+
+        status_temp['tx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_count
+        status_temp['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_bytes
+        status_temp['tx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_count
+        status_temp['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_bytes        
         status['cell_id'] = self.lte_sat_dl_baseband_sync_0.get_cell_id()
         status['prbl'] = self.lte_sat_dl_baseband_sync_0.get_prbl()
         status['pss_status'] = self.lte_sat_dl_baseband_sync_0.get_pss_status()
@@ -194,7 +212,25 @@ class ue65_ping_15prb_video(gr.top_block):
         status['ip'] = self.ip
         status['route'] = self.route
         status['u_freq'] = self.u_center_freq
-        status['d_freq'] = self.d_center_freq        
+        status['d_freq'] = self.d_center_freq
+        status['wrong_rx_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['wrong_rx_mac_pdu_count'])
+        status['wrong_rx_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['wrong_rx_mac_pdu_bytes'])
+        status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_right_mac_pdu_count'])
+        status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_right_mac_pdu_bytes'])
+        status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_right_mac_pdu_bps'])
+        status['rx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_pdu_count'])
+        status['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_pdu_bytes'])
+        status['rx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_sdu_count'])
+        status['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_sdu_bytes'])
+
+        status['total_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['total_usg_num'])
+        status['discard_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['discard_usg_num'])
+        status['tx_sr_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_sr_num
+
+        status['tx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_sdu_count'])
+        status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_sdu_bytes'])
+        status['tx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_pdu_count'])
+        status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_pdu_bytes'])        
         return status
 
 class ue65_ping_15prb_audio(gr.top_block):
@@ -644,7 +680,7 @@ class MatplotPanel(wx.Panel):
         self.axes.clear()
         self.axes.grid(self.cb_grid.IsChecked())
 
-        f = open ( '/home/lh/code/new_panel/matplot_data/pdsch.dat' , 'rb' )
+        f = open ( '/home/zhguixin/test.dat' , 'rb' )
         x = np.fromfile ( f , dtype = np.float32 , count = 10000 )
         f.close()
 
@@ -1186,8 +1222,8 @@ class MainFrame(wx.Frame):
             # self.tb = dl_test(**param)
             time.sleep(2)
             self.tb = ue65_ping_15prb_audio(**param)
-            os.system('sudo ifconfig tun1 192.168.200.12')
-            os.system('sudo route add 192.168.200.3 tun1')
+            # os.system('sudo ifconfig tun1 192.168.200.12')
+            # os.system('sudo route add 192.168.200.3 tun1')
 
         self.t1 = threading.Thread(target = self.monitor_forever)
         self.t1.setDaemon(True)
