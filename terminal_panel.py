@@ -845,41 +845,51 @@ class MainFrame(wx.Frame):
 
         # 小区ID
         id_cell = wx.StaticText(self.panel, -1, u'小区ID:')
-        self.id_cell_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        # self.id_cell_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        self.id_cell_t = wx.StaticText(self.panel, -1, '0')
 
         # RNTI
         rnti = wx.StaticText(self.panel, -1, u'RNTI:')
-        self.rnti_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        # self.rnti_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        self.rnti_t = wx.StaticText(self.panel, -1, '0')
 
         # 系统带宽
         bandwidth = wx.StaticText(self.panel, -1, u'系统带宽:')
-        self.bandwidth_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        # self.bandwidth_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        self.bandwidth_t = wx.StaticText(self.panel, -1, '0')
 
         # 上下行中心频率
         u_frequency_st = wx.StaticText(self.panel, -1, u"上行中心频率(MHz):")
-        self.u_frequency = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        # self.u_frequency = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        self.u_frequency = wx.StaticText(self.panel, -1, '0')
         d_frequency_st = wx.StaticText(self.panel, -1, u"下行中心频率(MHz):")
-        self.d_frequency = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        # self.d_frequency = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        self.d_frequency = wx.StaticText(self.panel, -1, '0')
 
         #实时载波频率偏差值
         cfo_st = wx.StaticText(self.panel, -1, u"实时载波频率偏差:")
-        self.cfo = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        # self.cfo = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        self.cfo = wx.StaticText(self.panel, -1, '0')
 
         #实时细定时误差
         fte_st = wx.StaticText(self.panel, -1, u"实时细定时误差:")
-        self.fte = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        # self.fte = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        self.fte = wx.StaticText(self.panel, -1, '0')
 
         #峰值位置
         pss_pos_st = wx.StaticText(self.panel, -1, u"峰值位置:")
-        self.pss_pos = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        # self.pss_pos = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
+        self.pss_pos = wx.StaticText(self.panel, -1, '0')
 
         # #虚拟ip地址
         # virtual_ip = wx.StaticText(self.panel, -1, u"虚拟ip地址:")
-        # self.virtual_ip_t = wx.TextCtrl(self.panel, -1, "192.168.200.11", style=wx.TE_READONLY)
+        # # self.virtual_ip_t = wx.TextCtrl(self.panel, -1, "192.168.200.11", style=wx.TE_READONLY)
+        # self.virtual_ip_t = wx.StaticText(self.panel, -1, '192.168.200.11')
 
         # #选择路由
         # select_route = wx.StaticText(self.panel, -1, u"选择路由:")
-        # self.select_route_t = wx.TextCtrl(self.panel, -1, "192.168.200.3", style=wx.TE_READONLY)
+        # # self.select_route_t = wx.TextCtrl(self.panel, -1, "192.168.200.3", style=wx.TE_READONLY)
+        # self.select_route_t = wx.StaticText(self.panel, -1, '192.168.200.3')
 
         #主同步状态是否锁定
         pss_status_st = wx.StaticText(self.panel, -1, u"主同步状态:\t\t\t")
@@ -897,22 +907,22 @@ class MainFrame(wx.Frame):
         process_state_st = wx.StaticText(self.panel, -1, u"处理状态(捕获／跟踪):\t\t\t")
         self.process_state = PanelOne(self.panel)
 
-        #MAC_PDU个数、误帧率、帧号、子帧号
+        # MAC_PDU个数、误帧率、帧号、子帧号
         # status_bar_lable = "MAC_PDU个数:\t\t\t误帧率:\t"
         # self.status_bar = wx.TextCtrl(self.panel, -1, status_bar_lable, style=wx.TE_READONLY)
         
         # 获取下行链路接收的mac_pdu的个数
-        # mac_pdu = wx.StaticText(self.panel, -1, u"mac_pdu的个数:\t")
-        # self.mac_pdu_value = wx.StaticText(self.panel, -1, '')
+        mac_pdu = wx.StaticText(self.panel, -1, u"mac_pdu的个数:\t")
+        self.mac_pdu_value = wx.StaticText(self.panel, -1, '')
 
-        # frame_error_rate = wx.StaticText(self.panel, -1, u"误帧率:\t")
-        # self.frame_error_rate_value = wx.StaticText(self.panel, -1, '')
+        frame_error_rate = wx.StaticText(self.panel, -1, u"误帧率:\t")
+        self.frame_error_rate_value = wx.StaticText(self.panel, -1, '')
 
-        # fn_st = wx.StaticText(self.panel, -1, u"帧号:\t")
-        # self.fn = wx.StaticText(self.panel, -1, '')
+        fn_st = wx.StaticText(self.panel, -1, u"帧号:\t")
+        self.fn = wx.StaticText(self.panel, -1, '')
 
-        # sfn_st = wx.StaticText(self.panel, -1, u"子帧号:\t")
-        # self.sfn = wx.StaticText(self.panel, -1, '')
+        sfn_st = wx.StaticText(self.panel, -1, u"子帧号:\t")
+        self.sfn = wx.StaticText(self.panel, -1, '')
 
         #详细显示按钮
         self.detail_button = wx.Button(self.panel, -1, u"详细显示")
@@ -946,28 +956,28 @@ class MainFrame(wx.Frame):
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
 
         ###########开始布局############
-        sizer1 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
+        sizer1 = wx.FlexGridSizer(cols=4, hgap=10, vgap=10)
         sizer1.AddGrowableCol(1)
         sizer1.Add(id_cell, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.id_cell_t, 0, wx.EXPAND)
-        sizer1.Add(rnti, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.rnti_t, 0, wx.EXPAND)
         sizer1.Add(bandwidth, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.bandwidth_t, 0, wx.EXPAND)    
+        sizer1.Add(rnti, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.rnti_t, 0, wx.EXPAND)
         sizer1.Add(pss_pos_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.pss_pos, 0, wx.EXPAND)
+        sizer1.Add(fte_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.fte, 0, wx.EXPAND)
+        sizer1.Add(u_frequency_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.u_frequency, 0, wx.EXPAND)
+        sizer1.Add(cfo_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.cfo, 0, wx.EXPAND)
+        sizer1.Add(d_frequency_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.d_frequency, 0, wx.EXPAND)
         # sizer1.Add(virtual_ip, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         # sizer1.Add(self.virtual_ip_t, 0, wx.EXPAND)
         # sizer1.Add(select_route, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         # sizer1.Add(self.select_route_t, 0, wx.EXPAND)
-        sizer1.Add(fte_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.fte, 0, wx.EXPAND)
-        sizer1.Add(cfo_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.cfo, 0, wx.EXPAND)
-        sizer1.Add(u_frequency_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.u_frequency, 0, wx.EXPAND)
-        sizer1.Add(d_frequency_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.d_frequency, 0, wx.EXPAND)
 
         sizer11 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer11.AddGrowableCol(1)
@@ -980,17 +990,17 @@ class MainFrame(wx.Frame):
         sizer11.Add(process_state_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer11.Add(self.process_state, 0, wx.EXPAND)
 
-        # sizer111 = wx.FlexGridSizer(cols=4, hgap=10, vgap=10)
-        # sizer111.AddGrowableCol(1)
-        # sizer111.AddGrowableCol(3)
-        # sizer111.Add(frame_error_rate, 0, wx.ALIGN_CENTER_VERTICAL)
-        # sizer111.Add(self.frame_error_rate_value, 0, wx.EXPAND)
-        # sizer111.Add(mac_pdu, 0, wx.ALIGN_CENTER_VERTICAL)
-        # sizer111.Add(self.mac_pdu_value, 0, wx.EXPAND)
-        # sizer111.Add(fn_st, 0, wx.ALIGN_CENTER_VERTICAL)
-        # sizer111.Add(self.fn, 0, wx.EXPAND)
-        # sizer111.Add(sfn_st, 0, wx.ALIGN_CENTER_VERTICAL)
-        # sizer111.Add(self.sfn, 0, wx.EXPAND)
+        sizer111 = wx.FlexGridSizer(cols=4, hgap=10, vgap=10)
+        sizer111.AddGrowableCol(1)
+        sizer111.AddGrowableCol(3)
+        sizer111.Add(frame_error_rate, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer111.Add(self.frame_error_rate_value, 0, wx.EXPAND)
+        sizer111.Add(mac_pdu, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer111.Add(self.mac_pdu_value, 0, wx.EXPAND)
+        sizer111.Add(fn_st, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer111.Add(self.fn, 0, wx.EXPAND)
+        sizer111.Add(sfn_st, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer111.Add(self.sfn, 0, wx.EXPAND)
 
         #高级按钮
         sizer_detail = wx.BoxSizer(wx.HORIZONTAL)
@@ -1004,7 +1014,7 @@ class MainFrame(wx.Frame):
         sizer2.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,10)
         sizer2.Add(sizer11, 0, wx.EXPAND | wx.ALL, 10)
         sizer2.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,10)
-        # sizer2.Add(sizer111, 0, wx.EXPAND | wx.ALL, 10)
+        sizer2.Add(sizer111, 0, wx.EXPAND | wx.ALL, 10)
         sizer2.Add(sizer_detail, 0, wx.EXPAND | wx.ALL, 10)
 
 
@@ -1348,7 +1358,7 @@ class DetailDialog_Display(wx.Frame):
         sizer1.Add(virtual_ip, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.virtual_ip_t, 0, wx.EXPAND)
         sizer1.Add(select_route, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.select_route_t, 0, wx.EXPAND)                
+        sizer1.Add(self.select_route_t, 0, wx.EXPAND)
         sizer1.Add(frame_error_rate, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.frame_error_rate_value, 0, wx.EXPAND)
         sizer1.Add(mac_pdu, 0, wx.ALIGN_CENTER_VERTICAL)
