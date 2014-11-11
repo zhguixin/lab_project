@@ -19,7 +19,7 @@ import lte_sat
 
 import wx
 import wx.grid
-import sys
+import sys, glob
 import os
 import threading
 import multiprocessing
@@ -854,8 +854,6 @@ class Detail_Dialog_SP(wx.Panel):
         Publisher().subscribe(self.updateDisplay, "update")
 
     def DetailPanel(self):
-        self.update_button = wx.Button(self, -1, u"更新")
-        self.Bind(wx.EVT_BUTTON, self.OnConnect, self.update_button)
 
         list_variable = ['rx_wrong_mac_pdu_count',
         'rx_wrong_mac_pdu_bytes',
@@ -896,7 +894,7 @@ class Detail_Dialog_SP(wx.Panel):
         'TX RLC==>MAC字节数'
         ]
 
-        colLabels = ['名称','值','含义']
+        colLabels = ['层面','名称','值']#,'含义']
 
         self.grid = wx.grid.Grid(self)
         self.grid.CreateGrid(len(list_variable),len(colLabels))
@@ -909,20 +907,24 @@ class Detail_Dialog_SP(wx.Panel):
         attr2 = wx.grid.GridCellAttr()
         attr2.SetReadOnly(True)
         attr2.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
-        # attr2.SetTextColour("navyblue")
-        # attr2.SetBackgroundColour("pink")
         self.grid.SetColAttr(0, attr2)
+
+        self.grid.SetCellSize(0, 0, 5, 1)
+        self.grid.SetCellSize(5, 0, 13, 1)
+
+        self.grid.SetCellValue(0, 0, "\n\n\n\n\nMAC")
+        self.grid.SetCellValue(5, 0, "\n\n\n\n\n\n\n\n\n\nRLC")
 
         self.grid.SetColSize(0, 100)
         self.grid.SetColSize(1, 150)
-        self.grid.SetColSize(2, 320)
+        self.grid.SetColSize(2, 150)
 
 
         for row in range(len(colLabels)):
             self.grid.SetColLabelValue(row, colLabels[row])
 
-        for row in range(len(list_variable)):
-            self.grid.SetCellValue(row, 1, list_variable[row])
+        for row in range(len(list_meaning)):
+            self.grid.SetCellValue(row, 1, list_meaning[row])
 
         # for row in range(len(list_value)):
         #     self.grid.SetCellValue(row, 1, str(list_value[row]))
@@ -938,15 +940,9 @@ class Detail_Dialog_SP(wx.Panel):
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer1.Add((20,20), 0)
         sizer1.Add(self.grid, 0, wx.ALIGN_RIGHT)
-        sizer1.Add(self.update_button, 0, wx.ALIGN_RIGHT)
 
         self.SetSizer(sizer1)
         self.Fit()
-
-    def OnConnect(self,event):
-        list_value = [1,1,1,1,'ff','ll']
-        for row in range(len(list_value)):
-            self.grid.SetCellValue(row, 1, str(list_value[row]))
 
     def updateDisplay(self, msg):
         """
@@ -974,19 +970,101 @@ class Detail_Dialog_SP(wx.Panel):
         dict_status['tx_rlc_pdu_bytes']+' bytes']
 
         for row in range(len(list_value)):
-            self.grid.SetCellValue(row, 1, str(list_value[row]))            
+            self.grid.SetCellValue(row, 2, str(list_value[row]))
+
+class Detail_Disp(wx.Panel):
+    def __init__(self,parent):
+        wx.Panel.__init__(self, parent)
+        self.Centre()
+        self.parent = parent
+        self.SetBackgroundColour("white")
+
+        self.list = wx.ListCtrl(parent, -1, style=wx.LC_REPORT, size=(400,500))
+
+        columns = ['名称','值']
+
+        rows = [('RX CRC错误总包数','0'),
+        ('RX CRC错误字节数','0'),
+        ('RX CRC正确总包数','0'),
+        ('RX CRC正确字节数','0'),
+        ('','0'),
+        ('MAC==>RLC总包数','0'),
+        ('MAC==>RLC字节数','0'),
+        ('','0'),
+        ('RLC==>高层总包数','0'),
+        ('RLC==>高层字节数','0'),
+        ('','0'),
+        ('TX 高层==>RLC总包数','0'),
+        ('TX 高层==>RLC字节数','0'),
+        ('','0'),
+        ('eNB检测到的SR数','0'),
+        ('eNB检测到的BSR数','0'),
+        ('TX RLC==>MAC总包数','0'),
+        ('TX RLC==>MAC字节数','0'),
+        ]       
+
+        # Add some columns
+        for col, text in enumerate(columns):
+            self.list.InsertColumn(col, text)
+
+        # add the rows
+        for item in rows:
+            index = self.list.InsertStringItem(sys.maxint, item[0])
+            for col, text in enumerate(item[1:]):
+                self.list.SetStringItem(index, col+1, text)
+
+        # set the width of the columns in various ways
+        self.list.SetColumnWidth(0, 250)
+        self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
+        sizer1 = wx.BoxSizer(wx.VERTICAL)
+        sizer1.Add((20,20), 0)
+        sizer1.Add(self.list, 0, wx.EXPAND|wx.TOP)
+
+        self.SetSizer(sizer1)
+        self.Fit()
+    def updateDisplay(self, msg):
+        """
+        从线程接收数据并且在界面更新显示
+        """
+        dict_status = msg.data
+
+        rows = [('RX CRC错误总包数',dict_status['rx_wrong_mac_pdu_count']+' packet'),
+        ('RX CRC错误字节数',dict_status['rx_wrong_mac_pdu_bytes']+' bytes'),
+        ('RX CRC正确总包数',dict_status['rx_right_mac_pdu_count']+' packet'),
+        ('RX CRC正确字节数',dict_status['rx_right_mac_pdu_bytes']+' bytes'),
+        ('',dict_status['rx_right_mac_pdu_bps']),
+        ('MAC==>RLC总包数',dict_status['rx_rlc_pdu_count']+' packet'),
+        ('MAC==>RLC字节数',dict_status['rx_rlc_pdu_bytes']+' bytes'),
+        ('',dict_status['rx_rlc_pdu_bps']),
+        ('RLC==>高层总包数',dict_status['rx_rlc_sdu_count']+' packet'),
+        ('RLC==>高层字节数',dict_status['rx_rlc_sdu_bytes']+' bytes'),
+        ('',dict_status['rx_rlc_sdu_bps']),
+        ('TX 高层==>RLC总包数',dict_status['tx_rlc_sdu_count']+' packet'),
+        ('TX 高层==>RLC字节数',dict_status['tx_rlc_sdu_bytes']+' bytes'),
+        ('',dict_status['tx_rlc_sdu_bps']),
+        ('eNB检测到的SR数',dict_status['rx_sr_num']),
+        ('eNB检测到的BSR数',dict_status['rx_bsr_num']),
+        ('TX RLC==>MAC总包数',dict_status['tx_rlc_pdu_count']+' packet'),
+        ('TX RLC==>MAC字节数',dict_status['tx_rlc_pdu_bytes']+' bytes'),
+        ]
+
+        for item in rows:
+            index = self.list.InsertStringItem(sys.maxint, item[0])
+            for col, text in enumerate(item[1:]):
+                self.list.SetStringItem(index, col+1, text)
 
 class MainFrame(wx.Frame):
     def __init__(self,parent,id):
-        # wx.Frame.__init__(self, None, title=u"信关站界面", size=(580,700))
         wx.Frame.__init__(self, None, title=u"信关站界面", size=(1000,780))
         self.Centre()
         # self.SetBackgroundColour("white")
 
-        # self.sp = wx.SplitterWindow(self)
-        self.panel = wx.Panel(self, style=wx.SP_3D)
-        # self.p1 = Detail_Dialog_SP(self.sp)
+        self.sp = wx.SplitterWindow(self)
+        self.panel = wx.Panel(self.sp, style=wx.SP_3D)
+        self.p1 = Detail_Disp(self.sp)
         # self.sp.SplitVertically(self.panel,self.p1,400)
+        self.sp.SplitVertically(self.p1,self.panel,500)
 
         self.panel.SetBackgroundColour("white")
 
@@ -999,7 +1077,7 @@ class MainFrame(wx.Frame):
         # 创建一个pubsub接收器,用于接收从子线程传递过来的消息
         Publisher().subscribe(self.updateDisplay, "update")
     
-    def updateDisplay(self, msg): 
+    def updateDisplay(self, msg):
         """
         从线程接收数据并且在界面更新显示
         """
@@ -1013,27 +1091,6 @@ class MainFrame(wx.Frame):
         self.select_route_t.SetLabel(str(dict_status['route']))
         # self.DisplayText.AppendText(str(dict_status['stat_info_0']))
         # self.DisplayText.AppendText(str(dict_status['stat_info_1']))
-        list_value = [dict_status['rx_wrong_mac_pdu_count']+' packet',
-        dict_status['rx_wrong_mac_pdu_bytes']+' bytes',
-        dict_status['rx_right_mac_pdu_count']+' packet',
-        dict_status['rx_right_mac_pdu_bytes']+' bytes',
-        dict_status['rx_right_mac_pdu_bps'],
-        dict_status['rx_rlc_pdu_count']+' packet',
-        dict_status['rx_rlc_pdu_bytes']+' bytes',
-        dict_status['rx_rlc_pdu_bps'],
-        dict_status['rx_rlc_sdu_count']+' packet',
-        dict_status['rx_rlc_sdu_bytes']+' bytes',
-        dict_status['rx_rlc_sdu_bps'],
-        dict_status['tx_rlc_sdu_count']+' packet',
-        dict_status['tx_rlc_sdu_bytes']+' bytes',
-        dict_status['tx_rlc_sdu_bps'],
-        dict_status['rx_sr_num'],
-        dict_status['rx_bsr_num'],
-        dict_status['tx_rlc_pdu_count']+' packet',
-        dict_status['tx_rlc_pdu_bytes']+' bytes']
-
-        for row in range(len(list_value)):
-            self.grid.SetCellValue(row, 2, str(list_value[row]))        
 
     def createframe(self):
 
@@ -1086,90 +1143,35 @@ class MainFrame(wx.Frame):
         port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
 
-        list_variable = ['rx_wrong_mac_pdu_count',
-        'rx_wrong_mac_pdu_bytes',
-        'rx_right_mac_pdu_count',
-        'rx_right_mac_pdu_bytes',
-        'rx_right_mac_pdu_bps',
-        'rx_rlc_pdu_count',
-        'rx_rlc_pdu_bytes',
-        'rx_rlc_pdu_bps',
-        'rx_rlc_sdu_count',
-        'rx_rlc_sdu_bytes',
-        'rx_rlc_sdu_bps',
-        'tx_rlc_sdu_count',
-        'tx_rlc_sdu_bytes',
-        'tx_rlc_sdu_bps',
-        'rx_sr_num',
-        'rx_bsr_num',
-        'tx_rlc_pdu_count',
-        'tx_rlc_pdu_bytes']
+        # self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT)
 
-        list_meaning = ['RX CRC错误总包数',
-        'RX CRC错误字节数',
-        'RX CRC正确总包数',
-        'RX CRC正确字节数',
-        '',
-        'MAC==>RLC总包数',
-        'MAC==>RLC字节数',
-        '',
-        'RLC==>高层总包数',
-        'RLC==>高层字节数',
-        '',
-        'TX 高层==>RLC总包数',
-        'TX 高层==>RLC字节数',
-        '',
-        'eNB检测到的SR数',
-        'eNB检测到的BSR数',
-        'TX RLC==>MAC总包数',
-        'TX RLC==>MAC字节数'
-        ]
+        # columns = ["Request ID", "Summary", "Date", "Submitted By"]
 
-        colLabels = ['层面','名称','值']#,'含义']
+        # rows = [
+        #     ("987441", "additions to RTTI?", "2004-07-08 10:22", "g00fy"),
+        #     ("846368", "wxTextCtrl - disable auto-scrolling", "2003-11-20 21:25", "ryannpcs"),
+        #     ("846367", "Less flicker when resizing a window", "2003-11-20 21:24", "ryannpcs"),
+        #     ("846366", "Wishlist - wxDbGetConnection return value", "2003-11-20 21:23", "ryannpcs"),
+        #     ("846364", "wxPostscriptDC with floating point coordinates", "2003-11-20 21:22", "ryannpcs"),
+        #     ("846363", "Wishlist - Better wxString Formatting", "2003-11-20 21:22", "ryannpcs"),
+        #     ("846362", "Wishlist - Crossplatform wxRichText Widget", "2003-11-20 21:20", "ryannpcs"),        
+        #     ]
 
+        # # Add some columns
+        # for col, text in enumerate(columns):
+        #     self.list.InsertColumn(col, text)
 
-        self.grid = wx.grid.Grid(self.panel)
-        self.grid.CreateGrid(len(list_variable),len(colLabels))
+        # # add the rows
+        # for item in rows:
+        #     index = self.list.InsertStringItem(sys.maxint, item[0])
+        #     for col, text in enumerate(item[1:]):
+        #         self.list.SetStringItem(index, col+1, text)
 
-        attr1 = wx.grid.GridCellAttr()
-        attr1.SetReadOnly(True)
-        for row in range(4):
-            self.grid.SetColAttr(row+1, attr1)
-
-        attr2 = wx.grid.GridCellAttr()
-        attr2.SetReadOnly(True)
-        attr2.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
-        # attr2.SetTextColour("navyblue")
-        # attr2.SetBackgroundColour("pink")
-        self.grid.SetColAttr(0, attr2)
-
-        self.grid.SetCellSize(0, 0, 5, 1)
-        self.grid.SetCellSize(5, 0, 13, 1)
-
-        self.grid.SetCellValue(0, 0, "\n\n\n\n\nMAC")
-        self.grid.SetCellValue(5, 0, "\n\n\n\n\n\n\n\n\n\nRLC")
-
-        self.grid.SetColSize(0, 100)
-        self.grid.SetColSize(1, 150)
-        self.grid.SetColSize(2, 150)
-
-
-        for row in range(len(colLabels)):
-            self.grid.SetColLabelValue(row, colLabels[row])
-
-        for row in range(len(list_meaning)):
-            self.grid.SetCellValue(row, 1, list_meaning[row])
-
-        # for row in range(len(list_value)):
-        #     self.grid.SetCellValue(row, 1, str(list_value[row]))
-
-        for row in range(len(list_meaning)):
-            self.grid.SetCellValue(row, 3, list_meaning[row])
-
-        # num_list = [0,1,2,5,6,36,37,38,39]
-        num_list = range(len(list_variable))
-        for num in num_list:
-            self.grid.SetRowSize(num, 40)
+        # # set the width of the columns in various ways
+        # self.list.SetColumnWidth(0, 120)
+        # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        # self.list.SetColumnWidth(2, wx.LIST_AUTOSIZE)
+        # self.list.SetColumnWidth(3, wx.LIST_AUTOSIZE_USEHEADER)        
 
         ###########开始布局############
         sizer1 = wx.FlexGridSizer(cols=4, hgap=10, vgap=10)
@@ -1212,15 +1214,15 @@ class MainFrame(wx.Frame):
 
         box1 = wx.BoxSizer(wx.VERTICAL)
         box1.Add(sizer2,0,wx.EXPAND | wx.ALL, 25)
-        # box1.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
+        box1.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
         box1.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 25)
 
-        box2 = wx.BoxSizer(wx.HORIZONTAL)
-        box2.Add(self.grid,0,wx.EXPAND | wx.ALL, 10)
-        box2.Add(box1,0,wx.EXPAND | wx.ALL, 10)
+        # box2 = wx.BoxSizer(wx.HORIZONTAL)
+        # box2.Add(box1, 0, wx.ALIGN_RIGHT)
+        # box2.Add(self.list, 0, wx.ALIGN_RIGHT)        
 
         # 自动调整界面尺寸
-        self.panel.SetSizer(box2)
+        self.panel.SetSizer(box1)
 
     def Detail(self,event):
         self.detail_dlg = Detail_Dialog(None)
