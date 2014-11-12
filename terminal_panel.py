@@ -780,13 +780,13 @@ class PanelOne(wx.Panel):
 
 class MainFrame(wx.Frame):
     def __init__(self,parent,id):
-        wx.Frame.__init__(self, None, title=u"终端界面", size=(1200,850))
+        wx.Frame.__init__(self, None, title=u"终端界面", size=(1400,850))
         self.Centre()
 
         self.sp = wx.SplitterWindow(self)
         self.panel = wx.Panel(self.sp, style=wx.SP_3D)
         self.p1 = MatplotPanel(self.sp)
-        self.sp.SplitVertically(self.panel,self.p1,400)
+        self.sp.SplitVertically(self.panel,self.p1,650)
 
         self.panel.SetBackgroundColour("white")
 
@@ -799,7 +799,7 @@ class MainFrame(wx.Frame):
         # 创建一个pubsub接收器,用于接收从子线程传递过来的消息
         Publisher().subscribe(self.updateDisplay, "update")
 
-    def updateDisplay(self, msg): 
+    def updateDisplay(self, msg):
         """
         从线程接收数据并且在界面更新显示
         """
@@ -838,6 +838,27 @@ class MainFrame(wx.Frame):
         # self.fn.SetLabel(str(dict_status['fn']))
         # self.sfn.SetLabel(str(dict_status['sfn']))
 
+        rows = [('RX CRC错误总包数',dict_status['wrong_rx_mac_pdu_count']+' packet'),
+        ('RX CRC错误字节数',dict_status['wrong_rx_mac_pdu_bytes']+' bytes'),
+        ('RX CRC正确总包数',dict_status['rx_right_mac_pdu_count']+' packet'),
+        ('RX CRC正确字节数',dict_status['rx_right_mac_pdu_bytes']+' bytes'),
+        ('',dict_status['rx_right_mac_pdu_bps']),
+        ('MAC==>RLC总包数',dict_status['rx_rlc_pdu_count']+' packet'),
+        ('MAC==>RLC字节数',dict_status['rx_rlc_pdu_bytes']+' bytes'),
+        ('RLC==>高层总包数',dict_status['rx_rlc_sdu_count']+' packet'),
+        ('RLC==>高层字节数',dict_status['rx_rlc_sdu_bytes']+' bytes'),
+        ('RX 丢弃调度数目',dict_status['total_usg_num']),
+        ('RX 总调度的数目',dict_status['discard_usg_num']),
+        ('TX 发送的SR数目',dict_status['tx_sr_num']),
+        ('TX 高层==>RLC总包数',dict_status['tx_rlc_sdu_count']+' packet'),
+        ('TX 高层==>RLC字节数',dict_status['tx_rlc_sdu_bytes']+' bytes'),
+        ('TX RLC==>MAC总包数',dict_status['tx_rlc_pdu_count']+' packet'),
+        ('TX RLC==>MAC字节数',dict_status['tx_rlc_pdu_bytes']+' bytes'),
+        ]
+
+        for index in range(len(rows)):
+            self.list.SetStringItem(index, 1, rows[index][1])
+
     def createframe(self):
 
         #绑定窗口的关闭事件
@@ -846,40 +867,40 @@ class MainFrame(wx.Frame):
         # 小区ID
         id_cell = wx.StaticText(self.panel, -1, u'小区ID:')
         # self.id_cell_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
-        self.id_cell_t = wx.StaticText(self.panel, -1, '0')
+        self.id_cell_t = wx.StaticText(self.panel, -1)
 
         # RNTI
         rnti = wx.StaticText(self.panel, -1, u'RNTI:')
         # self.rnti_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
-        self.rnti_t = wx.StaticText(self.panel, -1, '0')
+        self.rnti_t = wx.StaticText(self.panel, -1)
 
         # 系统带宽
         bandwidth = wx.StaticText(self.panel, -1, u'系统带宽:')
         # self.bandwidth_t = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
-        self.bandwidth_t = wx.StaticText(self.panel, -1, '0')
+        self.bandwidth_t = wx.StaticText(self.panel, -1)
 
         # 上下行中心频率
         u_frequency_st = wx.StaticText(self.panel, -1, u"上行中心频率(MHz):")
         # self.u_frequency = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
-        self.u_frequency = wx.StaticText(self.panel, -1, '0')
+        self.u_frequency = wx.StaticText(self.panel, -1)
         d_frequency_st = wx.StaticText(self.panel, -1, u"下行中心频率(MHz):")
         # self.d_frequency = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
-        self.d_frequency = wx.StaticText(self.panel, -1, '0')
+        self.d_frequency = wx.StaticText(self.panel, -1)
 
         #实时载波频率偏差值
         cfo_st = wx.StaticText(self.panel, -1, u"实时载波频率偏差:")
         # self.cfo = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
-        self.cfo = wx.StaticText(self.panel, -1, '0')
+        self.cfo = wx.StaticText(self.panel, -1)
 
         #实时细定时误差
         fte_st = wx.StaticText(self.panel, -1, u"实时细定时误差:")
         # self.fte = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
-        self.fte = wx.StaticText(self.panel, -1, '0')
+        self.fte = wx.StaticText(self.panel, -1)
 
         #峰值位置
         pss_pos_st = wx.StaticText(self.panel, -1, u"峰值位置:")
         # self.pss_pos = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
-        self.pss_pos = wx.StaticText(self.panel, -1, '0')
+        self.pss_pos = wx.StaticText(self.panel, -1)
 
         # #虚拟ip地址
         # virtual_ip = wx.StaticText(self.panel, -1, u"虚拟ip地址:")
@@ -933,7 +954,7 @@ class MainFrame(wx.Frame):
         self.detail_button_grid = wx.Button(self.panel, -1, u"详细显示之二")
         self.detail_button_grid.SetBackgroundColour('black')
         self.detail_button_grid.SetForegroundColour('white')
-        self.Bind(wx.EVT_BUTTON,self.Detail_1,self.detail_button_grid)     
+        self.Bind(wx.EVT_BUTTON,self.Detail_1,self.detail_button_grid)
 
         #连接按钮
         self.connect_button = wx.Button(self.panel, -1, u"连接")
@@ -955,24 +976,61 @@ class MainFrame(wx.Frame):
         port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
 
+        self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(350,500))
+
+        columns = ['名称','值']
+
+        rows = [('RX CRC错误总包数','0'),
+        ('RX CRC错误字节数','0'),
+        ('RX CRC正确总包数','0'),
+        ('RX CRC正确字节数','0'),
+        ('','0'),
+        ('MAC==>RLC总包数','0'),
+        ('MAC==>RLC字节数','0'),
+        ('RLC==>高层总包数','0'),
+        ('RLC==>高层字节数','0'),
+        ('RX 丢弃调度数目','0'),
+        ('RX 总调度的数目','0'),
+        ('TX 发送的SR数目','0'),
+        ('TX 高层==>RLC总包数','0'),
+        ('TX 高层==>RLC字节数','0'),
+        ('TX RLC==>MAC总包数','0'),
+        ('TX RLC==>MAC字节数','0'),
+        ] 
+
+        # Add some columns
+        for col, text in enumerate(columns):
+            self.list.InsertColumn(col, text)
+
+        # add the rows
+        for item in rows:
+            index = self.list.InsertStringItem(sys.maxint, item[0])
+            for col, text in enumerate(item[1:]):
+                self.list.SetStringItem(index, col+1, text)
+
+        # set the width of the columns in various ways
+        self.list.SetColumnWidth(0, 180)
+        self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
         ###########开始布局############
-        sizer1 = wx.FlexGridSizer(cols=4, hgap=10, vgap=10)
+        sizer1 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer1.AddGrowableCol(1)
-        sizer1.Add(id_cell, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.AddGrowableCol(3)
+        sizer1.Add(id_cell, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.id_cell_t, 0, wx.EXPAND)
-        sizer1.Add(bandwidth, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.bandwidth_t, 0, wx.EXPAND)    
-        sizer1.Add(rnti, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(rnti, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.rnti_t, 0, wx.EXPAND)
-        sizer1.Add(pss_pos_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(pss_pos_st, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.pss_pos, 0, wx.EXPAND)
-        sizer1.Add(fte_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(bandwidth, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.bandwidth_t, 0, wx.EXPAND)            
+        sizer1.Add(fte_st, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.fte, 0, wx.EXPAND)
-        sizer1.Add(u_frequency_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.u_frequency, 0, wx.EXPAND)
-        sizer1.Add(cfo_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(cfo_st, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.cfo, 0, wx.EXPAND)
-        sizer1.Add(d_frequency_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(u_frequency_st, 0, wx.ALIGN_CENTER_VERTICAL)
+        sizer1.Add(self.u_frequency, 0, wx.EXPAND)
+        sizer1.Add(d_frequency_st, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.d_frequency, 0, wx.EXPAND)
         # sizer1.Add(virtual_ip, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         # sizer1.Add(self.virtual_ip_t, 0, wx.EXPAND)
@@ -1010,13 +1068,12 @@ class MainFrame(wx.Frame):
         sizer_detail.Add(self.detail_button_grid, 0, wx.ALIGN_RIGHT)
 
         sizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'状态显示'), wx.VERTICAL)
-        sizer2.Add(sizer1, 0, wx.EXPAND | wx.ALL, 10)
+        sizer2.Add(sizer1, 0, wx.EXPAND | wx.ALL | wx.TOP, 10)
         sizer2.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,10)
         sizer2.Add(sizer11, 0, wx.EXPAND | wx.ALL, 10)
         sizer2.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,10)
         sizer2.Add(sizer111, 0, wx.EXPAND | wx.ALL, 10)
         sizer2.Add(sizer_detail, 0, wx.EXPAND | wx.ALL, 10)
-
 
         sizer3 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer3.AddGrowableCol(1)
@@ -1035,12 +1092,16 @@ class MainFrame(wx.Frame):
         sizer5.Add(sizer4, 0, wx.EXPAND | wx.ALL, 10)
 
         box1 = wx.BoxSizer(wx.VERTICAL)
-        box1.Add(sizer2,0,wx.EXPAND | wx.ALL, 25)
+        box1.Add(sizer2,0,wx.EXPAND | wx.ALL|wx.TOP, 25)
         box1.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
         box1.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 25)
 
+        box2 = wx.BoxSizer(wx.HORIZONTAL)
+        box2.Add(box1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+        box2.Add(self.list,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+
         #自动调整界面尺寸
-        self.panel.SetSizer(box1)
+        self.panel.SetSizer(box2)
 
     def Detail_1(self,event):
         self.detail_dlg = Detail_Dialog(None)
@@ -1323,7 +1384,7 @@ class DetailDialog_Display(wx.Frame):
         self.sfn.SetLabel(str(dict_status['sfn']))
 
         self.virtual_ip_t.SetLabel(str(dict_status['ip']))
-        self.select_route_t.SetLabel(str(dict_status['route']))        
+        self.select_route_t.SetLabel(str(dict_status['route']))  
 
     def DetailPanel(self):
 
