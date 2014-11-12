@@ -976,7 +976,7 @@ class MainFrame(wx.Frame):
         port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
 
-        self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(350,500))
+        self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(250,400))
 
         columns = ['名称','值']
 
@@ -1011,6 +1011,16 @@ class MainFrame(wx.Frame):
         # set the width of the columns in various ways
         self.list.SetColumnWidth(0, 180)
         self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
+        self.run_ue_audio_btn = wx.Button(self.panel, -1, u"运行UE-音频业务演示")
+        # self.run_ue_audio_btn.SetBackgroundColour('black')
+        # self.run_ue_audio_btn.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnRunUE_Audio, self.run_ue_audio_btn)
+
+        self.run_ue_video_btn = wx.Button(self.panel, -1, u"运行UE-视频业务演示")
+        # self.run_ue_video_btn.SetBackgroundColour('black')
+        # self.run_ue_video_btn.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnRunUE_Video, self.run_ue_video_btn)
 
         ###########开始布局############
         sizer1 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
@@ -1096,12 +1106,69 @@ class MainFrame(wx.Frame):
         box1.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
         box1.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 25)
 
-        box2 = wx.BoxSizer(wx.HORIZONTAL)
-        box2.Add(box1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+        box2 = wx.BoxSizer(wx.VERTICAL)
         box2.Add(self.list,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+        box2.Add((20,20), 0)
+
+        box_st1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u''), wx.VERTICAL)
+        box_st1.Add(box2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+
+        box_st2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行测试'), wx.VERTICAL)
+        box_st2.Add(self.run_ue_audio_btn, 0, wx.ALIGN_CENTER)
+        box_st2.Add((20,20), 0)
+        box_st2.Add(self.run_ue_video_btn, 0, wx.ALIGN_CENTER)
+
+        box3 = wx.BoxSizer(wx.VERTICAL)
+        box3.Add(box_st1,0,wx.EXPAND | wx.ALL, 25)
+        box3.Add((50,50), 0)
+        box3.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
+        box3.Add((50,50), 0)
+        box3.Add(box_st2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 10)
+
+        box4 = wx.BoxSizer(wx.HORIZONTAL)
+        box4.Add(box1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
+        box4.Add(box3,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 
         #自动调整界面尺寸
-        self.panel.SetSizer(box2)
+        self.panel.SetSizer(box4)
+
+    def OnRunUE_Audio(self,event):
+        param = {u'n_pucch': u'0', u'work_mod': u'1', u'DMRS1_T': u'4',
+        u'Delta_ss_T': u'10', u'u_frequency_T': u'800', u'algorithm_T': u'Max_Log',
+        u'mod_type_d': u'QPSK', u'Bandwidth': u'3', u'samp_rate_T': u'4M',
+        u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10', u'mod_type_u': u'QPSK',
+        u'decision_type_T': u'soft', u'shift_T': u'1', u'd_frequency_T': u'900',
+        u'IP': u'192.168.200.111', u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
+        u'RNTI': u'65', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1',
+        u'M_part': u'2', u'route': u'192.168.200.333', u'gain_r_T': u'10', u'SRS_period': u'2',
+        u'id_cell': 10, u'gain_s_T': u'10', u'iter_num_T': u'4', u'SR_offset': u'2',
+        u'Threshold': u'0.7', u'SRS_offset': u'0'}
+
+        # os.system('rm -rvf *.log *.dat *.test')
+        # os.system('uhd_usrp_probe')
+        time.sleep(2)
+        self.tb = ue65_ping_15prb_audio(**param)
+        self.tb.start()
+        self.tb.wait()
+
+    def OnRunUE_Video(self,event):
+        param = {u'n_pucch': u'0', u'work_mod': u'2', u'DMRS1_T': u'4', u'Delta_ss_T': u'10',
+        u'SRS_offset': u'0', u'algorithm_T': u'Max_Log', u'mod_type_d': u'QPSK',
+        u'gain_s_T': u'10', u'samp_rate_T': u'4M', u'C_SRS': u'4', u'IP': u'192.168.200.111',
+        u'RNTI': u'65', u'mod_type_u': u'QPSK', u'decision_type_T': u'soft', u'shift_T': u'1',
+        u'd_frequency_T': u'900', u'm_part': u'2', u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
+        u'n_RRC': u'10', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1', u'M_part': u'2',
+        u'u_frequency_T': u'800', u'gain_r_T': u'10', u'SRS_period': u'2', u'id_cell': 10, u'Bandwidth': u'3',
+        u'iter_num_T': u'4', u'SR_offset': u'2', u'Threshold': u'0.7', u'route': u'192.168.200.333'}
+        
+        # os.system('rm -rvf *.log *.dat *.test')
+        # os.system('uhd_usrp_probe')
+        time.sleep(2)
+        self.tb = ue65_ping_15prb_video(**param)
+        os.system('sudo ifconfig tun1 192.168.200.12')
+        os.system('sudo route add 192.168.200.3 tun1')
+        self.tb.start()
+        self.tb.wait()        
 
     def Detail_1(self,event):
         self.detail_dlg = Detail_Dialog(None)
@@ -1189,7 +1256,7 @@ class MainFrame(wx.Frame):
               
             #处理input
             for s in readable:  
-                data = s.recv(2048) 
+                data = s.recv(2048)
 
                 # print data
                 if data: 
@@ -1203,7 +1270,7 @@ class MainFrame(wx.Frame):
                     elif data == 'stop_block':
                         self.stop_top_block() 
                     else:
-                        global param   
+                        global param
                         param = json.loads(data)
                         # A readable client socket has data  
                         print param
@@ -1322,14 +1389,14 @@ class MainFrame(wx.Frame):
         self.sss_status.state_red()
         self.pbch_status.state_red()
         self.process_state.state_red()
-        self.cfo.SetValue('0')
-        self.fte.SetValue('0')
-        self.pss_pos.SetValue('0')
-        # self.virtual_ip_t.SetValue('192.168.200.11')
-        # self.select_route_t.SetValue('192.168.200.3')
-        self.id_cell_t.SetValue('0')
-        self.rnti_t.SetValue('0')
-        self.bandwidth_t.SetValue('0')
+        self.cfo.SetLabel('0')
+        self.fte.SetLabel('0')
+        self.pss_pos.SetLabel('0')
+        # self.virtual_ip_t.SetLabel('192.168.200.11')
+        # self.select_route_t.SetLabel('192.168.200.3')
+        self.id_cell_t.SetLabel('0')
+        self.rnti_t.SetLabel('0')
+        self.bandwidth_t.SetLabel('0')
         print 'stop'
 
     def OnCloseWindow(self, event):

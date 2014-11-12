@@ -597,14 +597,14 @@ class eNB_ping_15prb_one61(gr.top_block):
             if param['mod_type_u'] == '16QAM':
                 self.ul_mod_type = ul_mod_type = 2
             else:
-                self.ul_mod_type = ul_mod_type = 1                
+                self.ul_mod_type = ul_mod_type = 1
             self.dl_rate = dl_rate = float(param['exp_code_rate_d_G'])
             self.ul_rate = ul_rate = float(param['exp_code_rate_u_G'])
-            self.cell_id = cell_id = int(param['id_cell'])          
+            self.cell_id = cell_id = int(param['id_cell'])
             self.samp_rate = samp_rate = 4e6
             self.mod_type = mod_type = 1
             # self.fftl = fftl = 256
-            # self.prbl = prbl = 15            
+            # self.prbl = prbl = 15
         except: print '变量初始化失败'
 
         print prbl,fftl,dl_mod_type,ul_mod_type,dl_rate,ul_rate,cell_id
@@ -895,7 +895,11 @@ class Detail_Disp(wx.Panel):
         sizer1.Add(self.list, 0, wx.EXPAND|wx.TOP)
         # sizer1.Add(self.update_button, 0, wx.EXPAND|wx.TOP)
 
-        self.SetSizer(sizer1)
+        sizer_st = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u''), wx.VERTICAL)
+        sizer_st.Add(sizer1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+        sizer_st.Add(wx.StaticLine(self), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
+
+        self.SetSizer(sizer_st)
         self.Fit()
     def updateDisplay(self, msg):
         """
@@ -1021,8 +1025,23 @@ class MainFrame(wx.Frame):
         self.connect_button = wx.Button(self.panel, -1, u"连接")
         self.connect_button.SetBackgroundColour('black')
         self.connect_button.SetForegroundColour('white')
-        self.Bind(wx.EVT_BUTTON, self.OnConnect, self.connect_button)  
+        self.Bind(wx.EVT_BUTTON, self.OnConnect, self.connect_button)
         # self.connect_button.SetDefault() 
+
+        self.run_eNB_audio_btn = wx.Button(self.panel, -1, u"运行eNB-音频业务演示")
+        # self.run_eNB_audio_btn.SetBackgroundColour('black')
+        # self.run_eNB_audio_btn.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Audio, self.run_eNB_audio_btn)
+
+        self.run_eNB_video_btn = wx.Button(self.panel, -1, u"运行eNB-视频业务演示")
+        # self.run_eNB_video_btn.SetBackgroundColour('black')
+        # self.run_eNB_video_btn.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Video, self.run_eNB_video_btn)
+
+        # self.run_eNB_btn = wx.Button(self.panel, -1, u"运行eNB-数据业务演示")
+        # self.run_eNB_btn.SetBackgroundColour('black')
+        # self.run_eNB_btn.SetForegroundColour('white')
+        # self.Bind(wx.EVT_BUTTON, self.OnRunENB_Audio, self.run_eNB_btn)                
 
         #设置连接服务器的IP地址和端口号
         self.gateway_config.read("gateway.conf")
@@ -1072,17 +1091,61 @@ class MainFrame(wx.Frame):
         sizer4.Add((20,20), 1)
         sizer4.Add(self.connect_button, 0, wx.ALIGN_RIGHT)
 
+        sizer_enb = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_enb.Add((20,20), 0)
+        sizer_enb.Add(self.run_eNB_audio_btn, 0, wx.ALIGN_CENTER)
+        sizer_enb.Add((20,20), 0)
+        sizer_enb.Add(self.run_eNB_video_btn, 0, wx.ALIGN_CENTER)
+
         sizer5 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'连接服务器'), wx.VERTICAL)
         sizer5.Add(sizer3, 0, wx.EXPAND | wx.ALL, 10)
         sizer5.Add(sizer4, 0, wx.EXPAND | wx.ALL, 10)
 
+        sizer6 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行测试'), wx.VERTICAL)
+        sizer6.Add(sizer_enb, 0, wx.EXPAND | wx.ALL, 10)
+
         box1 = wx.BoxSizer(wx.VERTICAL)
         box1.Add(sizer2,0,wx.EXPAND | wx.ALL, 25)
         box1.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
-        box1.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 25)
+        box1.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 10)
+        box1.Add(sizer6,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 10)        
 
         # 自动调整界面尺寸
         self.panel.SetSizer(box1)
+
+    def OnRunENB_Audio(self,event):
+        param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
+        u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', u'mod_type_d': u'QPSK',
+        u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log', u'mod_type_u': u'QPSK',
+        u'm_part': u'2', u'shift_G': u'1', u'd_frequency_G': u'900',
+        u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', u'iter_num_G': u'4',
+        u'M_part': u'2', u'route': u'192.168.200.3', u'samp_rate_G': u'4M',
+        u'Bandwidth': u'3', u'data_rules_G': u'1', u'gain_r_G': u'10',
+        u'u_frequency_G': u'800', u'DMRS2_G': u'4', u'id_cell': 10}
+
+        # os.system('rm -rvf *.log *.dat *.test')
+        # os.system('uhd_usrp_probe')
+        self.tb = eNB_ping_15prb_one65_audio(**param)
+        self.tb.start()
+        self.tb.wait()
+
+    def OnRunENB_Video(self,event):
+        param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
+        u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', u'mod_type_d': u'QPSK',
+        u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log', u'mod_type_u': u'QPSK',
+        u'm_part': u'2', u'shift_G': u'1', u'd_frequency_G': u'900',
+        u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', u'iter_num_G': u'4',
+        u'M_part': u'2', u'route': u'192.168.200.3', u'samp_rate_G': u'4M',
+        u'Bandwidth': u'3', u'data_rules_G': u'1', u'gain_r_G': u'10',
+        u'u_frequency_G': u'800', u'DMRS2_G': u'4', u'id_cell': 10}
+
+        # os.system('rm -rvf *.log *.dat *.test')
+        # os.system('uhd_usrp_probe')
+        self.tb = eNB_ping_15prb_one65_video(**param)
+        os.system('sudo ifconfig tun0 192.168.200.3')
+        os.system('sudo route add 192.168.200.12 dev tun0')
+        self.tb.start()
+        self.tb.wait()
 
     def Detail(self,event):
         self.detail_dlg = Detail_Dialog(None)
