@@ -138,7 +138,7 @@ class ue65_ping_15prb_video(gr.top_block):
           
         self.lte_sat_ul_baseband_generator_0 = lte_sat.ul_baseband_generator()
         self.lte_sat_layer2_ue_0 = lte_sat.layer2_ue(variable_ul_para_0)
-        self.lte_sat_layer2_ue_0.create_logic_channel(lte_sat.mode_um,0)
+        self.lte_sat_layer2_ue_0.create_logic_channel(lte_sat.mode_um,0,0)
           
         self.lte_sat_dl_subframe_demapper_0 = lte_sat.dl_subframe_demapper(rnti)
         self.lte_sat_dl_baseband_sync_0 = lte_sat.dl_baseband_sync(threshold, False)
@@ -315,7 +315,7 @@ class ue65_ping_15prb_audio(gr.top_block):
           
         self.lte_sat_ul_baseband_generator_0 = lte_sat.ul_baseband_generator()
         self.lte_sat_layer2_ue_0 = lte_sat.layer2_ue(variable_ul_para_0)
-        self.lte_sat_layer2_ue_0.create_logic_channel(lte_sat.mode_um,0)
+        self.lte_sat_layer2_ue_0.create_logic_channel(lte_sat.mode_um,0,0)
           
         self.lte_sat_dl_subframe_demapper_0 = lte_sat.dl_subframe_demapper(rnti)
         self.lte_sat_dl_baseband_sync_0 = lte_sat.dl_baseband_sync(threshold, False)
@@ -567,7 +567,7 @@ class dl_test(gr.top_block):
         self.uhd_usrp_source_0.set_center_freq(160e6, 0)
         self.uhd_usrp_source_0.set_gain(10, 0)
         self.lte_sat_layer2_ue_0 = lte_sat.layer2_ue(variable_ul_para_0)
-        self.lte_sat_layer2_ue_0.create_logic_channel(lte_sat.mode_um,10)
+        self.lte_sat_layer2_ue_0.create_logic_channel(lte_sat.mode_um,10,0)
           
         self.lte_sat_dl_subframe_demapper_0 = lte_sat.dl_subframe_demapper(61)
         self.lte_sat_dl_baseband_sync_0 = lte_sat.dl_baseband_sync(0.7, False)
@@ -786,7 +786,7 @@ class MainFrame(wx.Frame):
         self.sp = wx.SplitterWindow(self)
         self.panel = wx.Panel(self.sp, style=wx.SP_3D)
         self.p1 = MatplotPanel(self.sp)
-        self.sp.SplitVertically(self.panel,self.p1,650)
+        self.sp.SplitVertically(self.panel,self.p1,550)
 
         self.panel.SetBackgroundColour("white")
 
@@ -1102,16 +1102,18 @@ class MainFrame(wx.Frame):
         sizer5.Add(sizer4, 0, wx.EXPAND | wx.ALL, 10)
 
         box1 = wx.BoxSizer(wx.VERTICAL)
-        box1.Add(sizer2,0,wx.EXPAND | wx.ALL|wx.TOP, 25)
+        box1.Add(sizer2,0,wx.EXPAND | wx.ALL|wx.TOP, 0)
+        box1.Add((20,20), 0)
         box1.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
-        box1.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 25)
+        box1.Add((20,20), 0)
+        box1.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 
         box2 = wx.BoxSizer(wx.VERTICAL)
-        box2.Add(self.list,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+        box2.Add(self.list,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
         box2.Add((20,20), 0)
 
         box_st1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u''), wx.VERTICAL)
-        box_st1.Add(box2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+        box_st1.Add(box2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 
         box_st2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行测试'), wx.VERTICAL)
         box_st2.Add(self.run_ue_audio_btn, 0, wx.ALIGN_CENTER)
@@ -1119,11 +1121,11 @@ class MainFrame(wx.Frame):
         box_st2.Add(self.run_ue_video_btn, 0, wx.ALIGN_CENTER)
 
         box3 = wx.BoxSizer(wx.VERTICAL)
-        box3.Add(box_st1,0,wx.EXPAND | wx.ALL, 25)
-        box3.Add((50,50), 0)
+        box3.Add(box_st1,0,wx.EXPAND | wx.ALL)
+        box3.Add((70,70), 0)
         box3.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
-        box3.Add((50,50), 0)
-        box3.Add(box_st2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 10)
+        box3.Add((100,100), 0)
+        box3.Add(box_st2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 
         box4 = wx.BoxSizer(wx.HORIZONTAL)
         box4.Add(box1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
@@ -1134,15 +1136,15 @@ class MainFrame(wx.Frame):
 
     def OnRunUE_Audio(self,event):
         param = {u'n_pucch': u'0', u'work_mod': u'1', u'DMRS1_T': u'4',
-        u'Delta_ss_T': u'10', u'u_frequency_T': u'800', u'algorithm_T': u'Max_Log',
+        u'Delta_ss_T': u'10', u'u_frequency_T': u'20', u'algorithm_T': u'Max_Log',
         u'mod_type_d': u'QPSK', u'Bandwidth': u'3', u'samp_rate_T': u'4M',
         u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10', u'mod_type_u': u'QPSK',
-        u'decision_type_T': u'soft', u'shift_T': u'1', u'd_frequency_T': u'900',
+        u'decision_type_T': u'soft', u'shift_T': u'1', u'd_frequency_T': u'40',
         u'IP': u'192.168.200.111', u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
         u'RNTI': u'65', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1',
         u'M_part': u'2', u'route': u'192.168.200.333', u'gain_r_T': u'10', u'SRS_period': u'2',
         u'id_cell': 10, u'gain_s_T': u'10', u'iter_num_T': u'4', u'SR_offset': u'2',
-        u'Threshold': u'0.7', u'SRS_offset': u'0'}
+        u'Threshold': u'0.5', u'SRS_offset': u'0'}
 
         # os.system('rm -rvf *.log *.dat *.test')
         # os.system('uhd_usrp_probe')
@@ -1152,23 +1154,38 @@ class MainFrame(wx.Frame):
         self.tb.wait()
 
     def OnRunUE_Video(self,event):
+        
+        self.p2 = multiprocessing.Process(name='run_ue_video',target=self.Run_UE_Video)
+        self.p2.daemon = True
+        self.p2.start()
+
+    def Run_UE_Video(self):
         param = {u'n_pucch': u'0', u'work_mod': u'2', u'DMRS1_T': u'4', u'Delta_ss_T': u'10',
         u'SRS_offset': u'0', u'algorithm_T': u'Max_Log', u'mod_type_d': u'QPSK',
         u'gain_s_T': u'10', u'samp_rate_T': u'4M', u'C_SRS': u'4', u'IP': u'192.168.200.111',
         u'RNTI': u'65', u'mod_type_u': u'QPSK', u'decision_type_T': u'soft', u'shift_T': u'1',
-        u'd_frequency_T': u'900', u'm_part': u'2', u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
+        u'd_frequency_T': u'40', u'm_part': u'2', u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
         u'n_RRC': u'10', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1', u'M_part': u'2',
-        u'u_frequency_T': u'800', u'gain_r_T': u'10', u'SRS_period': u'2', u'id_cell': 10, u'Bandwidth': u'3',
-        u'iter_num_T': u'4', u'SR_offset': u'2', u'Threshold': u'0.7', u'route': u'192.168.200.333'}
-        
+        u'u_frequency_T': u'20', u'gain_r_T': u'10', u'SRS_period': u'2', u'id_cell': 10, u'Bandwidth': u'3',
+        u'iter_num_T': u'4', u'SR_offset': u'2', u'Threshold': u'0.5', u'route': u'192.168.200.333'}
         # os.system('rm -rvf *.log *.dat *.test')
         # os.system('uhd_usrp_probe')
         time.sleep(2)
         self.tb = ue65_ping_15prb_video(**param)
         os.system('sudo ifconfig tun1 192.168.200.12')
         os.system('sudo route add 192.168.200.3 tun1')
+
+        self.t_1 = threading.Thread(target = self.update_panel)
+        self.t_1.setDaemon(True)
+        self.t_1.start()
+
         self.tb.start()
-        self.tb.wait()        
+        self.tb.wait()
+
+    def update_panel(self):
+        while True:
+            wx.CallAfter(Publisher().sendMessage, "update", self.tb.get_status())
+            time.sleep(1)
 
     def Detail_1(self,event):
         self.detail_dlg = Detail_Dialog(None)
@@ -1350,9 +1367,9 @@ class MainFrame(wx.Frame):
 
             # self.p_play = multiprocessing.Process(name='start_play',
             #     target=self.start_play)
-            self.p_play = threading.Thread(target=self.start_play)
-            self.p_play.daemon = True
-            self.p_play.start()
+            # self.p_play = threading.Thread(target=self.start_play)
+            # self.p_play.daemon = True
+            # self.p_play.start()
 
         elif param['work_mod'] == '0':
             self.tb = dl_ber_test_recv(**param)
@@ -1417,10 +1434,10 @@ class MainFrame(wx.Frame):
             if isinstance(self.detail_dlg,Detail_Dialog) == True:
                 self.detail_dlg.Destroy()                
 
-    def start_play(self):
-        str_play = "vlc rtp://@:5004"
-        print str_play
-        # os.system(str_play)
+    # def start_play(self):
+    #     str_play = "vlc rtp://@:5004"
+    #     print str_play
+    #     os.system(str_play)
 
 class DetailDialog_Display(wx.Frame):
     def __init__(self, parent):

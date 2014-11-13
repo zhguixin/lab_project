@@ -133,12 +133,12 @@ class eNB_ping_15prb_one65_video(gr.top_block):
         self.lte_sat_ul_subframe_demapper_0 = lte_sat.ul_subframe_demapper(cell_id,prbl)
         self.lte_sat_ul_baseband_sync_0 = lte_sat.ul_baseband_sync(prbl,fftl,cell_id,0.5,False)
         self.lte_sat_layer2_0 = lte_sat.layer2(cell_id,prbl,dl_mod_type,dl_rate,ul_mod_type,ul_rate)
-        self.lte_sat_layer2_0.create_logic_channel(rnti, 0, lte_sat.mode_um,1)
+        self.lte_sat_layer2_0.create_logic_channel(rnti, 0, lte_sat.mode_um,0)
         
         self.lte_sat_eNB_config_0 = lte_sat.eNB_entity_config(False)
         self.lte_sat_eNB_config_0.set_leading_sched_b4_mapping(2, 5)
         self.lte_sat_eNB_config_0.set_leading_map_b4_sending(15)
-        self.lte_sat_eNB_config_0.set_delay_sfc_for_pusch_after_usg(20)
+        # self.lte_sat_eNB_config_0.set_delay_sfc_for_pusch_after_usg(20)
         self.lte_sat_eNB_config_0.add_ul_param(variable_ul_para_0)
           
         self.lte_sat_dl_subframe_mapper_0_0 = lte_sat.dl_subframe_mapper(prbl,cell_id)
@@ -312,7 +312,7 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
         self.lte_sat_tag_appender_0.add_tag("dst_rnti", 65)
           
         self.lte_sat_layer2_0 = lte_sat.layer2(cell_id,prbl,dl_mod_type,dl_rate,ul_mod_type,ul_rate)
-        self.lte_sat_layer2_0.create_logic_channel(rnti, 0, lte_sat.mode_um,1)
+        self.lte_sat_layer2_0.create_logic_channel(rnti, 0, lte_sat.mode_um,0)
         
         self.lte_sat_eNB_config_0 = lte_sat.eNB_entity_config(False)
         self.lte_sat_eNB_config_0.set_leading_sched_b4_mapping(2, 5)
@@ -519,7 +519,7 @@ class dl_test(gr.top_block):
 
         self.lte_sat_layer2_0 = lte_sat.layer2(cell_id,prbl,dl_mod_type,dl_rate,ul_mod_type,ul_rate)
         # self.lte_sat_layer2_0 = lte_sat.layer2(10,prbl,2,0.4,2,0.4)
-        self.lte_sat_layer2_0.create_logic_channel(61, 10, lte_sat.mode_um,1)
+        self.lte_sat_layer2_0.create_logic_channel(61, 10, lte_sat.mode_um,0)
         
         self.lte_sat_dl_subframe_mapper_0_0 = lte_sat.dl_subframe_mapper(prbl,cell_id)
         self.lte_sat_dl_baseband_generator_0 = lte_sat.dl_baseband_generator(prbl, fftl)
@@ -652,7 +652,7 @@ class eNB_ping_15prb_one61(gr.top_block):
         self.lte_sat_ul_baseband_sync_0 = lte_sat.ul_baseband_sync(prbl,fftl,10,0.5,False)
         # int cell_id,prbl,dl_mod_type,float dl_rate,ul_mod_type,ul_rate
         self.lte_sat_layer2_0 = lte_sat.layer2(10,prbl,mod_type,0.4,mod_type,0.4)
-        self.lte_sat_layer2_0.create_logic_channel(61, 10, lte_sat.mode_um,1)
+        self.lte_sat_layer2_0.create_logic_channel(61, 10, lte_sat.mode_um,0)
         
         # with_usrp 是否为测试模式
         self.lte_sat_eNB_config_0 = lte_sat.eNB_entity_config(False)
@@ -1130,6 +1130,13 @@ class MainFrame(wx.Frame):
         self.tb.wait()
 
     def OnRunENB_Video(self,event):
+
+        self.p2 = multiprocessing.Process(name='run_enb_video',target=self.Run_ENB_Video)
+        self.p2.daemon = True
+        self.p2.start()
+
+
+    def Run_UE_Video(self):
         param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
         u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', u'mod_type_d': u'QPSK',
         u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log', u'mod_type_u': u'QPSK',
@@ -1139,13 +1146,23 @@ class MainFrame(wx.Frame):
         u'Bandwidth': u'3', u'data_rules_G': u'1', u'gain_r_G': u'10',
         u'u_frequency_G': u'800', u'DMRS2_G': u'4', u'id_cell': 10}
 
-        # os.system('rm -rvf *.log *.dat *.test')
-        # os.system('uhd_usrp_probe')
+        os.system('rm -rvf *.log *.dat *.test')
+        os.system('uhd_usrp_probe')
         self.tb = eNB_ping_15prb_one65_video(**param)
         os.system('sudo ifconfig tun0 192.168.200.3')
         os.system('sudo route add 192.168.200.12 dev tun0')
+
+        self.t_1 = threading.Thread(target = self.update_panel)
+        self.t_1.setDaemon(True)
+        self.t_1.start()
+
         self.tb.start()
-        self.tb.wait()
+        self.tb.wait()        
+
+    def update_panel(self):
+        while True:
+            wx.CallAfter(Publisher().sendMessage, "update", self.tb.get_status())
+            time.sleep(1)        
 
     def Detail(self,event):
         self.detail_dlg = Detail_Dialog(None)
