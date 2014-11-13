@@ -786,7 +786,7 @@ class MainFrame(wx.Frame):
         self.sp = wx.SplitterWindow(self)
         self.panel = wx.Panel(self.sp, style=wx.SP_3D)
         self.p1 = MatplotPanel(self.sp)
-        self.sp.SplitVertically(self.panel,self.p1,550)
+        self.sp.SplitVertically(self.panel,self.p1,600)
 
         self.panel.SetBackgroundColour("white")
 
@@ -824,19 +824,22 @@ class MainFrame(wx.Frame):
             self.process_state.state_green()
         elif dict_status['process_state']==0:
             self.process_state.state_red()
-        self.id_cell_t.SetValue(str(dict_status['cell_id']))
-        self.rnti_t.SetValue(str(dict_status['rnti']))
-        # self.virtual_ip_t.SetValue(str(dict_status['ip']))
-        # self.select_route_t.SetValue(str(dict_status['route']))
-        self.bandwidth_t.SetValue(str(dict_status['prbl']))
-        self.cfo.SetValue(str(dict_status['cfo']))
-        self.fte.SetValue(str(dict_status['fte']))
-        self.pss_pos.SetValue(str(dict_status['pss_pos']))
+        self.id_cell_t.SetLabel(str(dict_status['cell_id']))
+        self.rnti_t.SetLabel(str(dict_status['rnti']))
+        # self.virtual_ip_t.SetLabel(str(dict_status['ip']))
+        # self.select_route_t.SetLabel(str(dict_status['route']))
+        self.bandwidth_t.SetLabel(str(dict_status['prbl']))
+        self.cfo.SetLabel(str(dict_status['cfo']))
+        self.fte.SetLabel(str(dict_status['fte']))
+        self.pss_pos.SetLabel(str(dict_status['pss_pos']))
 
-        # self.mac_pdu_value.SetLabel(str(dict_status['pdu_sum']))
-        # self.frame_error_rate_value.SetLabel(str(dict_status['fer']))
-        # self.fn.SetLabel(str(dict_status['fn']))
-        # self.sfn.SetLabel(str(dict_status['sfn']))
+        self.u_frequency.SetLabel(str(dict_status['u_freq']))
+        self.d_frequency.SetLabel(str(dict_status['d_freq']))
+
+        self.mac_pdu_value.SetLabel(str(dict_status['pdu_sum']))
+        self.frame_error_rate_value.SetLabel(str(dict_status['fer']))
+        self.fn.SetLabel(str(dict_status['fn']))
+        self.sfn.SetLabel(str(dict_status['sfn']))
 
         rows = [('RX CRC错误总包数',dict_status['wrong_rx_mac_pdu_count']+' packet'),
         ('RX CRC错误字节数',dict_status['wrong_rx_mac_pdu_bytes']+' bytes'),
@@ -857,7 +860,7 @@ class MainFrame(wx.Frame):
         ]
 
         for index in range(len(rows)):
-            self.list.SetStringItem(index, 1, rows[index][1])
+            self.list.SetStringItem(index, 1, str(rows[index][1]))
 
     def createframe(self):
 
@@ -976,7 +979,7 @@ class MainFrame(wx.Frame):
         port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
 
-        self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(250,400))
+        self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(300,400))
 
         columns = ['名称','值']
 
@@ -1009,8 +1012,9 @@ class MainFrame(wx.Frame):
                 self.list.SetStringItem(index, col+1, text)
 
         # set the width of the columns in various ways
-        self.list.SetColumnWidth(0, 180)
-        self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self.list.SetColumnWidth(0, 170)
+        # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self.list.SetColumnWidth(1, 100)
 
         self.run_ue_audio_btn = wx.Button(self.panel, -1, u"运行UE-音频业务演示")
         # self.run_ue_audio_btn.SetBackgroundColour('black')
@@ -1135,6 +1139,8 @@ class MainFrame(wx.Frame):
         self.panel.SetSizer(box4)
 
     def OnRunUE_Audio(self,event):
+        self.run_ue_audio_btn.Disable()
+
         param = {u'n_pucch': u'0', u'work_mod': u'1', u'DMRS1_T': u'4',
         u'Delta_ss_T': u'10', u'u_frequency_T': u'20', u'algorithm_T': u'Max_Log',
         u'mod_type_d': u'QPSK', u'Bandwidth': u'3', u'samp_rate_T': u'4M',
@@ -1146,7 +1152,7 @@ class MainFrame(wx.Frame):
         u'id_cell': 10, u'gain_s_T': u'10', u'iter_num_T': u'4', u'SR_offset': u'2',
         u'Threshold': u'0.5', u'SRS_offset': u'0'}
 
-        # os.system('rm -rvf *.log *.dat *.test')
+        os.system('rm -rvf *.log *.dat *.test')
         # os.system('uhd_usrp_probe')
         time.sleep(2)
         self.tb = ue65_ping_15prb_audio(**param)
@@ -1154,9 +1160,11 @@ class MainFrame(wx.Frame):
         self.tb.wait()
 
     def OnRunUE_Video(self,event):
+
+        self.run_ue_video_btn.Disable()
         
-        self.p2 = multiprocessing.Process(name='run_ue_video',target=self.Run_UE_Video)
-        self.p2.daemon = True
+        self.p2 = threading.Thread(target = self.Run_UE_Video)
+        self.p2.setDaemon(True)
         self.p2.start()
 
     def Run_UE_Video(self):
@@ -1168,7 +1176,8 @@ class MainFrame(wx.Frame):
         u'n_RRC': u'10', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1', u'M_part': u'2',
         u'u_frequency_T': u'20', u'gain_r_T': u'10', u'SRS_period': u'2', u'id_cell': 10, u'Bandwidth': u'3',
         u'iter_num_T': u'4', u'SR_offset': u'2', u'Threshold': u'0.5', u'route': u'192.168.200.333'}
-        # os.system('rm -rvf *.log *.dat *.test')
+        
+        os.system('rm -rvf *.log *.dat *.test')
         # os.system('uhd_usrp_probe')
         time.sleep(2)
         self.tb = ue65_ping_15prb_video(**param)
@@ -1539,8 +1548,8 @@ class Detail_Dialog(wx.Frame):
         Publisher().subscribe(self.updateDisplay, "update")
 
     def DetailPanel(self):
-        self.update_button = wx.Button(self, -1, u"更新")
-        self.Bind(wx.EVT_BUTTON, self.OnConnect, self.update_button)
+        # self.update_button = wx.Button(self, -1, u"更新")
+        # self.Bind(wx.EVT_BUTTON, self.OnConnect, self.update_button)
 
         self.grid = wx.grid.Grid(self)
         self.grid.CreateGrid(16,3)
@@ -1555,7 +1564,7 @@ class Detail_Dialog(wx.Frame):
         attr2.SetFont(wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD))
         self.grid.SetColAttr(0, attr2)
 
-        self.grid.SetColSize(0, 200)
+        self.grid.SetColSize(0, 170)
         self.grid.SetColSize(1, 150)
         self.grid.SetColSize(2, 320)
 
@@ -1588,13 +1597,13 @@ class Detail_Dialog(wx.Frame):
             self.grid.SetColLabelValue(row, colLabels[row])
 
         for row in range(len(list_variable)):
-            self.grid.SetCellValue(row, 0, list_variable[row])
+            self.grid.SetCellValue(row, 2, list_variable[row])
 
         # for row in range(len(list_value)):
         #     self.grid.SetCellValue(row, 1, str(list_value[row]))
 
         for row in range(len(list_meaning)):
-            self.grid.SetCellValue(row, 2, list_meaning[row])
+            self.grid.SetCellValue(row, 0, list_meaning[row])
 
         # num_list = [0,1,2,5,6,36,37,38,39]
         num_list = range(16)
@@ -1604,7 +1613,7 @@ class Detail_Dialog(wx.Frame):
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer1.Add((20,20), 0)
         sizer1.Add(self.grid, 0, wx.ALIGN_RIGHT)
-        sizer1.Add(self.update_button, 0, wx.ALIGN_RIGHT)
+        # sizer1.Add(self.update_button, 0, wx.ALIGN_RIGHT)
 
         self.SetSizer(sizer1)
         self.Fit()

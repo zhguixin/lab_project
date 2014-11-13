@@ -720,8 +720,8 @@ class Detail_Dialog(wx.Frame):
         Publisher().subscribe(self.updateDisplay, "update")
 
     def DetailPanel(self):
-        self.update_button = wx.Button(self, -1, u"更新")
-        self.Bind(wx.EVT_BUTTON, self.OnConnect, self.update_button)
+        # self.update_button = wx.Button(self, -1, u"更新")
+        # self.Bind(wx.EVT_BUTTON, self.OnConnect, self.update_button)
 
         list_variable = ['rx_wrong_mac_pdu_count',
         'rx_wrong_mac_pdu_bytes',
@@ -779,7 +779,7 @@ class Detail_Dialog(wx.Frame):
         # attr2.SetBackgroundColour("pink")
         self.grid.SetColAttr(0, attr2)
 
-        self.grid.SetColSize(0, 100)
+        self.grid.SetColSize(0, 170)
         self.grid.SetColSize(1, 150)
         self.grid.SetColSize(2, 320)
 
@@ -788,13 +788,13 @@ class Detail_Dialog(wx.Frame):
             self.grid.SetColLabelValue(row, colLabels[row])
 
         for row in range(len(list_variable)):
-            self.grid.SetCellValue(row, 1, list_variable[row])
+            self.grid.SetCellValue(row, 2, list_variable[row])
 
         # for row in range(len(list_value)):
         #     self.grid.SetCellValue(row, 1, str(list_value[row]))
 
         for row in range(len(list_meaning)):
-            self.grid.SetCellValue(row, 3, list_meaning[row])
+            self.grid.SetCellValue(row, 0, list_meaning[row])
 
         # num_list = [0,1,2,5,6,36,37,38,39]
         num_list = range(len(list_variable))
@@ -804,7 +804,7 @@ class Detail_Dialog(wx.Frame):
         sizer1 = wx.BoxSizer(wx.HORIZONTAL)
         sizer1.Add((20,20), 0)
         sizer1.Add(self.grid, 0, wx.ALIGN_RIGHT)
-        sizer1.Add(self.update_button, 0, wx.ALIGN_RIGHT)
+        # sizer1.Add(self.update_button, 0, wx.ALIGN_RIGHT)
 
         self.SetSizer(sizer1)
         self.Fit()
@@ -850,7 +850,9 @@ class Detail_Disp(wx.Panel):
         self.SetBackgroundColour("white")
 
         # self.update_button = wx.Button(self, -1, u"更新")
-        # self.Bind(wx.EVT_BUTTON, self.OnUpdate, self.update_button)        
+        # self.Bind(wx.EVT_BUTTON, self.OnUpdate, self.update_button)      
+        
+        Publisher().subscribe(self.updateDisplay, "update")  
 
         self.list = wx.ListCtrl(parent, -1, style=wx.LC_REPORT, size=(150,450))
 
@@ -888,7 +890,8 @@ class Detail_Disp(wx.Panel):
 
         # set the width of the columns in various ways
         self.list.SetColumnWidth(0, 250)
-        self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self.list.SetColumnWidth(1, 100)
 
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add((20,20), 0)
@@ -906,6 +909,7 @@ class Detail_Disp(wx.Panel):
         从线程接收数据并且在界面更新显示
         """
         dict_status = msg.data
+
 
         rows = [('RX CRC错误总包数',dict_status['rx_wrong_mac_pdu_count']+' packet'),
         ('RX CRC错误字节数',dict_status['rx_wrong_mac_pdu_bytes']+' bytes'),
@@ -928,31 +932,31 @@ class Detail_Disp(wx.Panel):
         ]
 
         for index in range(len(rows)):
-            self.list.SetStringItem(index, 1, rows[index][1])
+            self.list.SetStringItem(index, 1, str(rows[index][1]))
 
-    def OnUpdate(self,event):
-        self.rows = [('RX CRC错误总包数','1'),
-        ('RX CRC错误字节数','2'),
-        ('RX CRC正确总包数','2'),
-        ('RX CRC正确字节数','4'),
-        ('','5'),
-        ('MAC==>RLC总包数','1'),
-        ('MAC==>RLC字节数','1'),
-        ('','1'),
-        ('RLC==>高层总包数','1'),
-        ('RLC==>高层字节数','1'),
-        ('','1'),
-        ('TX 高层==>RLC总包数','1'),
-        ('TX 高层==>RLC字节数','1'),
-        ('','1'),
-        ('eNB检测到的SR数','1'),
-        ('eNB检测到的BSR数','1'),
-        ('TX RLC==>MAC总包数','1'),
-        ('TX RLC==>MAC字节数','1'),
-        ]
+    # def OnUpdate(self,event):
+    #     self.rows = [('RX CRC错误总包数','1'),
+    #     ('RX CRC错误字节数','2'),
+    #     ('RX CRC正确总包数','2'),
+    #     ('RX CRC正确字节数','4'),
+    #     ('','5'),
+    #     ('MAC==>RLC总包数','1'),
+    #     ('MAC==>RLC字节数','1'),
+    #     ('','1'),
+    #     ('RLC==>高层总包数','1'),
+    #     ('RLC==>高层字节数','1'),
+    #     ('','1'),
+    #     ('TX 高层==>RLC总包数','1'),
+    #     ('TX 高层==>RLC字节数','1'),
+    #     ('','1'),
+    #     ('eNB检测到的SR数','1'),
+    #     ('eNB检测到的BSR数','1'),
+    #     ('TX RLC==>MAC总包数','1'),
+    #     ('TX RLC==>MAC字节数','1'),
+    #     ]
 
-        for index in range(len(self.rows)):
-            self.list.SetStringItem(index, 1, self.rows[index][1])
+    #     for index in range(len(self.rows)):
+    #         self.list.SetStringItem(index, 1, self.rows[index][1])
 
 class MainFrame(wx.Frame):
     def __init__(self,parent,id):
@@ -983,12 +987,16 @@ class MainFrame(wx.Frame):
         """
         dict_status = msg.data
         # print str(dict_status['stat_info'])
+        # print str(dict_status)
 
         self.DisplayText.Clear()
         self.virtual_ip_t.SetLabel(str(dict_status['ip']))
         self.select_route_t.SetLabel(str(dict_status['route']))
-        # self.DisplayText.AppendText(str(dict_status['stat_info_0']))
-        # self.DisplayText.AppendText(str(dict_status['stat_info_1']))
+        self.u_frequency.SetLabel(str(dict_status['u_freq']))
+        self.d_frequency.SetLabel(str(dict_status['d_freq']))
+
+        self.DisplayText.AppendText(str(dict_status['stat_info_0']))
+        self.DisplayText.AppendText(str(dict_status['stat_info_1']))
 
     def createframe(self):
 
@@ -1114,6 +1122,8 @@ class MainFrame(wx.Frame):
         self.panel.SetSizer(box1)
 
     def OnRunENB_Audio(self,event):
+        self.run_eNB_audio_btn.Disable()
+
         param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
         u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', u'mod_type_d': u'QPSK',
         u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log', u'mod_type_u': u'QPSK',
@@ -1130,21 +1140,21 @@ class MainFrame(wx.Frame):
         self.tb.wait()
 
     def OnRunENB_Video(self,event):
+        self.run_eNB_video_btn.Disable()
 
-        self.p2 = multiprocessing.Process(name='run_enb_video',target=self.Run_ENB_Video)
-        self.p2.daemon = True
+        self.p2 = threading.Thread(target = self.Run_ENB_Video)
+        self.p2.setDaemon(True)
         self.p2.start()
 
-
-    def Run_UE_Video(self):
-        param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
+    def Run_ENB_Video(self):
+        param = {u'Threshold': u'0.5', u'ip': u'192.168.200.11', u'work_mod': u'1',
         u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', u'mod_type_d': u'QPSK',
         u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log', u'mod_type_u': u'QPSK',
-        u'm_part': u'2', u'shift_G': u'1', u'd_frequency_G': u'900',
+        u'm_part': u'2', u'shift_G': u'1', u'd_frequency_G': u'40',
         u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', u'iter_num_G': u'4',
         u'M_part': u'2', u'route': u'192.168.200.3', u'samp_rate_G': u'4M',
         u'Bandwidth': u'3', u'data_rules_G': u'1', u'gain_r_G': u'10',
-        u'u_frequency_G': u'800', u'DMRS2_G': u'4', u'id_cell': 10}
+        u'u_frequency_G': u'20', u'DMRS2_G': u'4', u'id_cell': 10}
 
         os.system('rm -rvf *.log *.dat *.test')
         os.system('uhd_usrp_probe')
@@ -1162,6 +1172,7 @@ class MainFrame(wx.Frame):
     def update_panel(self):
         while True:
             wx.CallAfter(Publisher().sendMessage, "update", self.tb.get_status())
+            # print self.tb.get_status()
             time.sleep(1)        
 
     def Detail(self,event):
@@ -1350,9 +1361,9 @@ class MainFrame(wx.Frame):
 
             # self.p_stream = multiprocessing.Process(name='start_streaming',
             #     target=self.start_streaming)
-            self.p_stream = threading.Thread(target=self.start_streaming)
-            self.p_stream.daemon = True
-            self.p_stream.start()
+            # self.p_stream = threading.Thread(target=self.start_streaming)
+            # self.p_stream.daemon = True
+            # self.p_stream.start()
 
         self.t1 = threading.Thread(target = self.monitor_forever)
         self.t1.setDaemon(True)
