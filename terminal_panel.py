@@ -423,97 +423,10 @@ class ue65_ping_15prb_audio(gr.top_block):
         status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_pdu_bytes'])
         return status
 
-class dl_ber_test_recv(gr.top_block):
+class ue65_ping_15prb_data(gr.top_block):
 
     def __init__(self,**param):
-        gr.top_block.__init__(self, "Dl Ber Test Recv")
-
-        ##################################################
-        # Variables
-        ##################################################
-        print param
-        try:
-            if param['Bandwidth'] == '1.4':
-                self.prbl = prbl = 6
-                self.fftl = fftl = 128
-                self.multiply_const = multiply_const = 128.0
-            else:
-                self.prbl = prbl = 15
-                self.fftl = fftl = 256
-                self.multiply_const = multiply_const = 256.0
-
-            if param['samp_rate_T'] == '2M':
-                self.samp_rate = samp_rate = 2000000
-            else:
-                self.samp_rate = samp_rate = 4000000 
-
-            if param['data_rules_T'] == '规则递增':
-                self.data_type = data_type = 0
-            else:
-                self.data_type = data_type = 1
-
-            self.threshold = threshold = float(param['Threshold'])
-            self.gain = gain = int(param['gain_r_T'])
-            self.RNTI_A = RNTI_A = int(param['RNTI'])
-        except: print '变量初始化失败'
-
-        print 'dl_ber_test_recv'
-        ##################################################
-        # Blocks
-        ##################################################
-        self.uhd_usrp_source_0 = uhd.usrp_source(
-            device_addr="addr=192.168.10.2",
-            stream_args=uhd.stream_args(
-                cpu_format="fc32",
-                channels=range(1),
-            ),
-        )
-        self.uhd_usrp_source_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_source_0.set_center_freq(9.0e8, 0)
-        self.uhd_usrp_source_0.set_gain(gain, 0)
-        self.lte_sat_dl_subframe_demapper_0 = lte_sat.dl_subframe_demapper(RNTI_A)
-        self.lte_sat_dl_baseband_sync_0 = lte_sat.dl_baseband_sync(threshold)
-        self.lte_sat_DL_mac_receive_0 = lte_sat.DL_mac_receive(data_type)
-        self.blocks_pdu_to_tagged_stream_0 = blocks.pdu_to_tagged_stream(blocks.byte_t, "packet_len")
-        self.blocks_null_sink_0_0 = blocks.null_sink(gr.sizeof_char*1)
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((multiply_const, ))
-
-        ##################################################
-        # Connections
-        ##################################################
-        self.connect((self.blocks_pdu_to_tagged_stream_0, 0), (self.blocks_null_sink_0_0, 0))
-        self.connect((self.lte_sat_dl_subframe_demapper_0, 0), (self.lte_sat_DL_mac_receive_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.lte_sat_dl_baseband_sync_0, 0))
-        self.connect((self.lte_sat_dl_baseband_sync_0, 0), (self.lte_sat_dl_subframe_demapper_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_multiply_const_vxx_0, 0))
-
-        ##################################################
-        # Asynch Message Connections
-        ##################################################
-        self.msg_connect(self.lte_sat_dl_subframe_demapper_0, "usg", self.blocks_pdu_to_tagged_stream_0, "pdus")
-        self.msg_connect(self.lte_sat_dl_baseband_sync_0, "sys_info", self.lte_sat_dl_subframe_demapper_0, "sys_info")
-
-    # QT sink close method reimplementation
-    def get_status(self):
-        status = {}
-        status['cell_id'] = self.lte_sat_dl_baseband_sync_0.get_cell_id()
-        status['prbl'] = self.lte_sat_dl_baseband_sync_0.get_prbl()
-        status['pss_status'] = self.lte_sat_dl_baseband_sync_0.get_pss_status()
-        status['sss_status'] = self.lte_sat_dl_baseband_sync_0.get_sss_status()
-        status['pbch_status'] = self.lte_sat_dl_baseband_sync_0.get_pbch_status()
-        status['process_state'] = self.lte_sat_dl_baseband_sync_0.get_process_state()
-        status['cfo'] = self.lte_sat_dl_baseband_sync_0.get_cfo()
-        status['fte'] = self.lte_sat_dl_baseband_sync_0.get_fte()
-        status['pss_pos'] = self.lte_sat_dl_baseband_sync_0.get_pss_pos()
-        status['get_ber'] = self.lte_sat_DL_mac_receive_0.get_ber()
-        status['get_fer'] = self.lte_sat_DL_mac_receive_0.get_fer()
-        status['matplot_data'] = self.lte_sat_dl_baseband_sync_0.function()
-        return status
-
-class dl_test(gr.top_block):
-
-    def __init__(self,**param):
-        gr.top_block.__init__(self, title="Dl Test Ue")
+        gr.top_block.__init__(self, "Ue65 Ping 15Prb Data")
 
         ##################################################
         # Variables
@@ -522,36 +435,36 @@ class dl_test(gr.top_block):
             if param['Bandwidth'] == '1.4':
                 self.prbl = prbl = 6
                 self.fftl = fftl = 128
-                self.multiply_const = multiply_const = 128.0
             else:
                 self.prbl = prbl = 15
                 self.fftl = fftl = 256
-                self.multiply_const = multiply_const = 256.0
 
             if param['samp_rate_T'] == '2M':
-                self.samp_rate = samp_rate = 2000000
+                self.samp_rate = samp_rate = 2e6 #2000000
             else:
-                self.samp_rate = samp_rate = 4000000 
-
-            if param['data_rules_T'] == '规则递增':
-                self.data_type = data_type = 0
-            else:
-                self.data_type = data_type = 1
+                self.samp_rate = samp_rate = 4e6 #4000000 
 
             self.threshold = threshold = float(param['Threshold'])
-            self.gain = gain = int(param['gain_r_T'])
-            self.RNTI_A = RNTI_A = int(param['RNTI'])
+            self.gain_r = gain_r = int(param['gain_r_T'])
+            self.gain_s = gain_s = int(param['gain_s_T'])
+            self.rnti = rnti = int(param['RNTI'])
+            self.multiply_const = multiply_const = 128.0
+            self.ip = ip = param['IP']
+            self.route = route = param['route']
+            self.u_center_freq = u_center_freq = int(param['u_frequency_T'])
+            self.d_center_freq = d_center_freq = int(param['d_frequency_T'])
+            self.ul_center_freq = ul_center_freq = 20e6
+            # self.samp_rate = samp_rate = 4e6
+            # self.fftl = fftl = 256
+            self.dl_center_freq = dl_center_freq = 40e6
         except: print '变量初始化失败'
-
-        self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(61, prbl)
-        self.variable_ul_para_0.set_cch_period(10, 2)
-        self.variable_ul_para_0.set_srs_period(10, 0)
+             
+        self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(65, prbl)
+        self.variable_ul_para_0.set_cch_period(10, 4)
+        self.variable_ul_para_0.set_srs_period(10, 5)
         self.variable_ul_para_0.set_sch_params(4, 2)
-          
-        self.samp_rate = samp_rate = 4000000
-        self.sacle = sacle = 512
-        self.fftl = fftl = 256
-        self.center_freq = center_freq = 1.2e9
+        self.variable_ul_para_0.set_srs_transmissionComb(1)
+        self.variable_ul_para_0.enable_bsr_persist(True)
 
         ##################################################
         # Blocks
@@ -564,44 +477,123 @@ class dl_test(gr.top_block):
             ),
         )
         self.uhd_usrp_source_0.set_samp_rate(4e6)
-        self.uhd_usrp_source_0.set_center_freq(160e6, 0)
+        self.uhd_usrp_source_0.set_center_freq(dl_center_freq, 0)
         self.uhd_usrp_source_0.set_gain(10, 0)
-        self.lte_sat_layer2_ue_0 = lte_sat.layer2_ue(variable_ul_para_0)
-        self.lte_sat_layer2_ue_0.create_logic_channel(lte_sat.mode_um,10,0)
+        self.uhd_usrp_sink_0 = uhd.usrp_sink(
+            device_addr="addr=192.168.10.2",
+            stream_args=uhd.stream_args(
+                cpu_format="fc32",
+                channels=range(1),
+            ),
+        )
+        self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
+        self.uhd_usrp_sink_0.set_center_freq(ul_center_freq, 0)
+        self.uhd_usrp_sink_0.set_gain(10, 0)
+        self.rational_resampler_xxx_0 = filter.rational_resampler_ccc(
+                interpolation=25,
+                decimation=24,
+                taps=None,
+                fractional_bw=None,
+        )
+        self.lte_sat_ul_subframe_mapper_0 = lte_sat.ul_subframe_mapper()
+        self.lte_sat_ul_subframe_mapper_0.set_uplink_config(variable_ul_para_0)
           
-        self.lte_sat_dl_subframe_demapper_0 = lte_sat.dl_subframe_demapper(61)
-        self.lte_sat_dl_baseband_sync_0 = lte_sat.dl_baseband_sync(0.7, False)
-        self.blocks_tagged_stream_to_pdu_0_0 = blocks.tagged_stream_to_pdu(blocks.byte_t, "packet_len")
-        self.blocks_pdu_to_tagged_stream_0_0 = blocks.pdu_to_tagged_stream(blocks.byte_t, "packet_len")
-        self.blocks_pdu_to_tagged_stream_0 = blocks.pdu_to_tagged_stream(blocks.byte_t, "packet_len")
-        self.blocks_null_source_0 = blocks.null_source(gr.sizeof_char*1)
-        self.blocks_null_sink_0 = blocks.null_sink(gr.sizeof_char*1)
+        self.lte_sat_ul_baseband_generator_0 = lte_sat.ul_baseband_generator()
+        self.lte_sat_layer2_ue_0 = lte_sat.layer2_ue(variable_ul_para_0)
+        self.lte_sat_layer2_ue_0.create_logic_channel(lte_sat.mode_um,0,False)
+          
+        self.lte_sat_dl_subframe_demapper_0 = lte_sat.dl_subframe_demapper(65)
+        self.lte_sat_dl_baseband_sync_0 = lte_sat.dl_baseband_sync(0.6, False)
+        self.blocks_tuntap_pdu_0 = blocks.tuntap_pdu("tun1", 10000)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((128.0, ))
-        self.blocks_char_to_float_0_0 = blocks.char_to_float(1, 1024)
-        self.audio_sink_0_0 = audio.sink(48000, "", True)
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_char_to_float_0_0, 0), (self.audio_sink_0_0, 0))
-        self.connect((self.blocks_pdu_to_tagged_stream_0, 0), (self.blocks_char_to_float_0_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_multiply_const_vxx_0, 0))
-        self.connect((self.blocks_pdu_to_tagged_stream_0_0, 0), (self.blocks_null_sink_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.lte_sat_dl_baseband_sync_0, 0))
-        self.connect((self.lte_sat_dl_baseband_sync_0, 0), (self.lte_sat_dl_subframe_demapper_0, 0))
-        self.connect((self.blocks_null_source_0, 0), (self.blocks_tagged_stream_to_pdu_0_0, 0))
         self.connect((self.lte_sat_dl_subframe_demapper_0, 0), (self.lte_sat_layer2_ue_0, 0))
+        self.connect((self.lte_sat_ul_subframe_mapper_0, 0), (self.lte_sat_ul_baseband_generator_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.lte_sat_dl_baseband_sync_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.blocks_multiply_const_vxx_0, 0))
+        self.connect((self.lte_sat_dl_baseband_sync_0, 0), (self.lte_sat_dl_subframe_demapper_0, 0))
+        self.connect((self.rational_resampler_xxx_0, 0), (self.uhd_usrp_sink_0, 0))
+        self.connect((self.lte_sat_ul_baseband_generator_0, 0), (self.rational_resampler_xxx_0, 0))
 
         ##################################################
         # Asynch Message Connections
         ##################################################
+        self.msg_connect(self.lte_sat_dl_baseband_sync_0, "sys_info", self.lte_sat_ul_subframe_mapper_0, "sys_info")
         self.msg_connect(self.lte_sat_dl_baseband_sync_0, "sys_info", self.lte_sat_dl_subframe_demapper_0, "sys_info")
-        self.msg_connect(self.blocks_tagged_stream_to_pdu_0_0, "pdus", self.lte_sat_layer2_ue_0, "tx_data")
-        self.msg_connect(self.lte_sat_layer2_ue_0, "rx_data", self.blocks_pdu_to_tagged_stream_0, "pdus")
-        self.msg_connect(self.lte_sat_layer2_ue_0, "sched_from_l2", self.blocks_pdu_to_tagged_stream_0_0, "pdus")
+        self.msg_connect(self.lte_sat_layer2_ue_0, "sched_from_l2", self.lte_sat_ul_subframe_mapper_0, "sched_from_l2")
+        self.msg_connect(self.blocks_tuntap_pdu_0, "pdus", self.lte_sat_layer2_ue_0, "tx_data")
+        self.msg_connect(self.lte_sat_layer2_ue_0, "rx_data", self.blocks_tuntap_pdu_0, "pdus")
+        self.msg_connect(self.lte_sat_dl_baseband_sync_0, "sys_info", self.lte_sat_ul_baseband_generator_0, "sys_info")
         self.msg_connect(self.lte_sat_dl_subframe_demapper_0, "usg", self.lte_sat_layer2_ue_0, "usg")
 
-    # QT sink close method reimplementation
+    def get_status(self):
+        status = {}
+        status_temp = {}
+        status_temp['wrong_rx_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_count
+        status_temp['wrong_rx_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().wrong_rx_mac_pdu_bytes
+        status_temp['rx_right_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_count
+        status_temp['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bytes
+        status_temp['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_right_mac_pdu_bps
+        status_temp['rx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_count
+        status_temp['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_pdu_bytes
+        status_temp['rx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_count
+        status_temp['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().rx_rlc_sdu_bytes
+
+        status_temp['total_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().total_usg_num
+        status_temp['discard_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().discard_usg_num
+
+        status_temp['tx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_count
+        status_temp['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_sdu_bytes
+        status_temp['tx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_count
+        status_temp['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_rlc_pdu_bytes
+
+        status['cell_id'] = self.lte_sat_dl_baseband_sync_0.get_cell_id()
+        status['prbl'] = self.lte_sat_dl_baseband_sync_0.get_prbl()
+        status['pss_status'] = self.lte_sat_dl_baseband_sync_0.get_pss_status()
+        status['sss_status'] = self.lte_sat_dl_baseband_sync_0.get_sss_status()
+        status['pbch_status'] = self.lte_sat_dl_baseband_sync_0.get_pbch_status()
+        status['process_state'] = self.lte_sat_dl_baseband_sync_0.get_process_state()
+        status['cfo'] = self.lte_sat_dl_baseband_sync_0.get_cfo()
+        status['fte'] = self.lte_sat_dl_baseband_sync_0.get_fte()
+        status['pss_pos'] = self.lte_sat_dl_baseband_sync_0.get_pss_pos()
+
+        status['fn'] = self.lte_sat_dl_subframe_demapper_0.get_fn()
+        status['sfn'] = self.lte_sat_dl_subframe_demapper_0.get_sfn()
+        status['fer'] = self.lte_sat_dl_subframe_demapper_0.get_fer()
+        status['rnti'] = self.lte_sat_dl_subframe_demapper_0.get_rnti()
+
+        status['pdu_sum'] = self.lte_sat_layer2_ue_0.get_mac_pdu_sum()
+        status['layer2_ue_fer'] = self.lte_sat_layer2_ue_0.get_fer()
+
+        status['ue_stat_info_0'] = self.lte_sat_layer2_ue_0.get_ue_stat_info_string(0)
+        status['ue_stat_info_1'] = self.lte_sat_layer2_ue_0.get_ue_stat_info_string(1)
+        status['ip'] = self.ip
+        status['route'] = self.route        
+        status['u_freq'] = self.u_center_freq
+        status['d_freq'] = self.d_center_freq
+
+        status['wrong_rx_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['wrong_rx_mac_pdu_count'])
+        status['wrong_rx_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['wrong_rx_mac_pdu_bytes'])
+        status['rx_right_mac_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_right_mac_pdu_count'])
+        status['rx_right_mac_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_right_mac_pdu_bytes'])
+        status['rx_right_mac_pdu_bps'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_right_mac_pdu_bps'])
+        status['rx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_pdu_count'])
+        status['rx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_pdu_bytes'])
+        status['rx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_sdu_count'])
+        status['rx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc_sdu_bytes'])
+
+        status['total_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['total_usg_num'])
+        status['discard_usg_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['discard_usg_num'])
+        status['tx_sr_num'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().tx_sr_num
+
+        status['tx_rlc_sdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_sdu_count'])
+        status['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_sdu_bytes'])
+        status['tx_rlc_pdu_count'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_pdu_count'])
+        status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['tx_rlc_pdu_bytes'])
+        return status
 
 class MatplotPanel(wx.Panel):
     def __init__(self, parent):
@@ -1040,6 +1032,11 @@ class MainFrame(wx.Frame):
         # self.run_ue_video_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunUE_Video, self.run_ue_video_btn)
 
+        self.run_ue_data_btn = wx.Button(self.panel, -1, u"运行UE-数据业务演示")
+        # self.run_ue_data_btn.SetBackgroundColour('black')
+        # self.run_ue_data_btn.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnRunUE_Data, self.run_ue_data_btn)
+
         ###########开始布局############
         sizer1 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer1.AddGrowableCol(1)
@@ -1144,6 +1141,8 @@ class MainFrame(wx.Frame):
         box_st_param.Add(sizer_param, 0, wx.ALIGN_CENTER)
 
         box_st2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行测试'), wx.VERTICAL)
+        box_st2.Add(self.run_ue_data_btn, 0, wx.ALIGN_CENTER)
+        box_st2.Add((20,20), 0)
         box_st2.Add(self.run_ue_audio_btn, 0, wx.ALIGN_CENTER)
         box_st2.Add((20,20), 0)
         box_st2.Add(self.run_ue_video_btn, 0, wx.ALIGN_CENTER)
@@ -1165,6 +1164,47 @@ class MainFrame(wx.Frame):
 
         #自动调整界面尺寸
         self.panel.SetSizer(box4)
+
+    def OnRunUE_Data(self,event):
+        self.run_ue_data_btn.Disable()
+        self.u_frequency_param.Disable()
+        self.d_frequency_param.Disable()
+        
+        self.p2 = threading.Thread(target = self.Run_UE_Data)
+        self.p2.setDaemon(True)
+        self.p2.start()   
+
+    def Run_UE_Data(self):
+        param_temp = {}
+        param_temp[u'd_frequency_T'] = self.u_frequency_param.GetValue()
+        param_temp[u'u_frequency_T'] = self.d_frequency_param.GetValue()
+
+        param = {u'n_pucch': u'0', u'work_mod': u'1', u'DMRS1_T': u'4',
+        u'Delta_ss_T': u'10', u'algorithm_T': u'Max_Log',
+        u'mod_type_d': u'QPSK', u'Bandwidth': u'3', u'samp_rate_T': u'4M',
+        u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10', u'mod_type_u': u'QPSK',
+        u'decision_type_T': u'soft', u'shift_T': u'1',u'IP': u'192.168.200.111',
+        u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
+        u'RNTI': u'65', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1',
+        u'M_part': u'2', u'route': u'192.168.200.333', u'gain_r_T': u'10',
+        u'SRS_period': u'2',u'id_cell': 10, u'gain_s_T': u'10', u'iter_num_T': u'4',
+        u'SR_offset': u'2',u'Threshold': u'0.5', u'SRS_offset': u'0'}
+        
+        param.update(param_temp)
+
+        os.system('rm -rvf *.log *.dat *.test')
+        # os.system('uhd_usrp_probe')
+        time.sleep(2)
+        self.tb = ue65_ping_15prb_data(**param)
+        os.system('sudo ifconfig tun1 192.168.200.12')
+        os.system('sudo route add 192.168.200.3 tun1')
+
+        self.t_1 = threading.Thread(target = self.update_panel)
+        self.t_1.setDaemon(True)
+        self.t_1.start()
+
+        self.tb.start()
+        self.tb.wait()        
 
     def OnRunUE_Audio(self,event):
         self.run_ue_audio_btn.Disable()
@@ -1423,7 +1463,6 @@ class MainFrame(wx.Frame):
         os.system('sudo rm  *.dat *.log')
         global param 
         if param['work_mod'] == '2': 
-            # self.tb = ue_ping(**param)
             time.sleep(2)
             self.tb = ue65_ping_15prb_video(**param)
             os.system('sudo ifconfig tun1 192.168.200.12')
@@ -1436,9 +1475,8 @@ class MainFrame(wx.Frame):
             # self.p_play.start()
 
         elif param['work_mod'] == '0':
-            self.tb = dl_ber_test_recv(**param)
+            self.tb = ue65_ping_15prb_data(**param)
         elif param['work_mod'] == '1':
-            # self.tb = dl_test(**param)
             time.sleep(2)
             self.tb = ue65_ping_15prb_audio(**param)
             # os.system('sudo ifconfig tun1 192.168.200.12')
