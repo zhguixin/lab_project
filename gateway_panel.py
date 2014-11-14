@@ -893,17 +893,147 @@ class Detail_Disp(wx.Panel):
         # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
         self.list.SetColumnWidth(1, 100)
 
+        #上行中心频率
+        u_frequency_list = ['20','800']
+        u_frequency_st_param = wx.StaticText(self, -1, u"上行中心频率(MHz):")
+        self.u_frequency_param = wx.ComboBox(self, -1, '20', wx.DefaultPosition,
+         wx.DefaultSize, u_frequency_list, 0)
+        # self.u_frequency = wx.TextCtrl(self,-1,'20')
+
+        #下行中心频率
+        d_frequency_list = ['40','900']
+        d_frequency_st_param = wx.StaticText(self, -1, u"下行中心频率(MHz):")
+        self.d_frequency_param = wx.ComboBox(self, -1, '40', wx.DefaultPosition,
+         wx.DefaultSize, d_frequency_list, 0)
+        # self.d_frequency = wx.TextCtrl(self,-1,'40')
+
+        self.run_eNB_audio_btn = wx.Button(self, -1, u"运行eNB-音频业务演示")
+        # self.run_eNB_audio_btn.SetBackgroundColour('black')
+        # self.run_eNB_audio_btn.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Audio, self.run_eNB_audio_btn)
+
+        self.run_eNB_video_btn = wx.Button(self, -1, u"运行eNB-视频业务演示")
+        # self.run_eNB_video_btn.SetBackgroundColour('black')
+        # self.run_eNB_video_btn.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Video, self.run_eNB_video_btn)
+
+        # self.run_eNB_btn = wx.Button(self, -1, u"运行eNB-数据业务演示")
+        # self.run_eNB_btn.SetBackgroundColour('black')
+        # self.run_eNB_btn.SetForegroundColour('white')
+        # self.Bind(wx.EVT_BUTTON, self.OnRunENB_Audio, self.run_eNB_btn)        
+
+        #######开始布局############
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add((20,20), 0)
         sizer1.Add(self.list, 0, wx.EXPAND|wx.TOP)
         # sizer1.Add(self.update_button, 0, wx.EXPAND|wx.TOP)
 
+        sizer2 = wx.FlexGridSizer(cols=2, hgap=10, vgap=20)
+        sizer2.AddGrowableCol(1)
+        sizer2.Add(u_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer2.Add(self.u_frequency_param, 0, wx.EXPAND)
+        sizer2.Add(d_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer2.Add(self.d_frequency_param, 0, wx.EXPAND)
+
+        sizer_st_param = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'本地运行参数配置'), wx.VERTICAL)
+        sizer_st_param.Add(sizer2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+
+        box_st2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'本地运行测试'), wx.VERTICAL)
+        box_st2.Add(self.run_eNB_audio_btn, 0, wx.ALIGN_CENTER)
+        box_st2.Add((20,20), 0)
+        box_st2.Add(self.run_eNB_video_btn, 0, wx.ALIGN_CENTER)       
+         
         sizer_st = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u''), wx.VERTICAL)
         sizer_st.Add(sizer1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
         sizer_st.Add(wx.StaticLine(self), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
+        sizer_st.Add(sizer_st_param,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
+        sizer_st.Add(box_st2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
 
         self.SetSizer(sizer_st)
         self.Fit()
+
+    def OnRunENB_Audio(self,event):
+        self.run_eNB_audio_btn.Disable()
+        self.u_frequency_param.Disable()
+        self.d_frequency_param.Disable()
+        
+        self.p_video = threading.Thread(target = self.Run_ENB_Audio)
+        self.p_video.setDaemon(True)
+        self.p_video.start()
+
+    def Run_ENB_Audio(self):
+        param_temp = {}
+        param_temp[u'd_frequency_G'] = self.u_frequency_param.GetValue()
+        param_temp[u'u_frequency_G'] = self.d_frequency_param.GetValue()
+
+        param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
+        u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', 
+        u'mod_type_d': u'QPSK',u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log',
+        u'mod_type_u': u'QPSK',u'm_part': u'2', u'shift_G': u'1',
+        u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', u'iter_num_G': u'4',
+        u'M_part': u'2', u'route': u'192.168.200.3', u'samp_rate_G': u'4M',
+        u'Bandwidth': u'3', u'data_rules_G': u'1', u'gain_r_G': u'10',
+        u'DMRS2_G': u'4', u'id_cell': 10}
+
+        param.update(param_temp)
+
+        os.system('rm -rvf *.log *.dat *.test')
+        # os.system('uhd_usrp_probe')
+        time.sleep(2)
+        self.tb = eNB_ping_15prb_one65_audio(**param)
+        
+        self.t_1 = threading.Thread(target = self.update_panel)
+        self.t_1.setDaemon(True)
+        self.t_1.start()
+
+        self.tb.start()
+        self.tb.wait()
+
+
+    def OnRunENB_Video(self,event):
+
+        self.run_eNB_video_btn.Disable()
+        self.u_frequency_param.Disable()
+        self.d_frequency_param.Disable()
+        
+        self.p_video = threading.Thread(target = self.Run_ENB_Video)
+        self.p_video.setDaemon(True)
+        self.p_video.start()
+
+    def Run_ENB_Video(self):
+        param_temp = {}
+        param_temp[u'd_frequency_G'] = self.u_frequency_param.GetValue()
+        param_temp[u'u_frequency_G'] = self.d_frequency_param.GetValue()
+
+        param = {u'Threshold': u'0.5', u'ip': u'192.168.200.11', u'work_mod': u'1',
+        u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', u'mod_type_d': u'QPSK',
+        u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log', u'mod_type_u': u'QPSK',
+        u'm_part': u'2', u'shift_G': u'1',u'exp_code_rate_u_G': u'0.4',
+        u'gain_s_G': u'10', u'iter_num_G': u'4',u'M_part': u'2', u'route': u'192.168.200.3',
+        u'samp_rate_G': u'4M',u'Bandwidth': u'3', u'data_rules_G': u'1', u'gain_r_G': u'10',
+        u'DMRS2_G': u'4', u'id_cell': 10}
+        
+        param.update(param_temp)
+
+        print param
+        os.system('rm -rvf *.log *.dat *.test')
+        os.system('uhd_usrp_probe')
+        self.tb = eNB_ping_15prb_one65_video(**param)
+        os.system('sudo ifconfig tun0 192.168.200.3')
+        os.system('sudo route add 192.168.200.12 dev tun0')
+
+        self.t_1 = threading.Thread(target = self.update_panel)
+        self.t_1.setDaemon(True)
+        self.t_1.start()
+
+        self.tb.start()
+        self.tb.wait()
+
+    def update_panel(self):
+        while True:
+            wx.CallAfter(Publisher().sendMessage, "update", self.tb.get_status())
+            time.sleep(1)
+
     def updateDisplay(self, msg):
         """
         从线程接收数据并且在界面更新显示
@@ -1034,17 +1164,17 @@ class MainFrame(wx.Frame):
         self.connect_button.SetBackgroundColour('black')
         self.connect_button.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnConnect, self.connect_button)
-        # self.connect_button.SetDefault() 
+        # self.connect_button.SetDefault()     
 
-        self.run_eNB_audio_btn = wx.Button(self.panel, -1, u"运行eNB-音频业务演示")
-        # self.run_eNB_audio_btn.SetBackgroundColour('black')
-        # self.run_eNB_audio_btn.SetForegroundColour('white')
-        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Audio, self.run_eNB_audio_btn)
+        # self.run_eNB_audio_btn = wx.Button(self.panel, -1, u"运行eNB-音频业务演示")
+        # # self.run_eNB_audio_btn.SetBackgroundColour('black')
+        # # self.run_eNB_audio_btn.SetForegroundColour('white')
+        # self.Bind(wx.EVT_BUTTON, self.OnRunENB_Audio, self.run_eNB_audio_btn)
 
-        self.run_eNB_video_btn = wx.Button(self.panel, -1, u"运行eNB-视频业务演示")
-        # self.run_eNB_video_btn.SetBackgroundColour('black')
-        # self.run_eNB_video_btn.SetForegroundColour('white')
-        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Video, self.run_eNB_video_btn)
+        # self.run_eNB_video_btn = wx.Button(self.panel, -1, u"运行eNB-视频业务演示")
+        # # self.run_eNB_video_btn.SetBackgroundColour('black')
+        # # self.run_eNB_video_btn.SetForegroundColour('white')
+        # self.Bind(wx.EVT_BUTTON, self.OnRunENB_Video, self.run_eNB_video_btn)
 
         # self.run_eNB_btn = wx.Button(self.panel, -1, u"运行eNB-数据业务演示")
         # self.run_eNB_btn.SetBackgroundColour('black')
@@ -1099,24 +1229,24 @@ class MainFrame(wx.Frame):
         sizer4.Add((20,20), 1)
         sizer4.Add(self.connect_button, 0, wx.ALIGN_RIGHT)
 
-        sizer_enb = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_enb.Add((20,20), 0)
-        sizer_enb.Add(self.run_eNB_audio_btn, 0, wx.ALIGN_CENTER)
-        sizer_enb.Add((20,20), 0)
-        sizer_enb.Add(self.run_eNB_video_btn, 0, wx.ALIGN_CENTER)
+        # sizer_enb = wx.BoxSizer(wx.HORIZONTAL)
+        # sizer_enb.Add((20,20), 0)
+        # sizer_enb.Add(self.run_eNB_audio_btn, 0, wx.ALIGN_CENTER)
+        # sizer_enb.Add((20,20), 0)
+        # sizer_enb.Add(self.run_eNB_video_btn, 0, wx.ALIGN_CENTER)
 
         sizer5 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'连接服务器'), wx.VERTICAL)
         sizer5.Add(sizer3, 0, wx.EXPAND | wx.ALL, 10)
         sizer5.Add(sizer4, 0, wx.EXPAND | wx.ALL, 10)
 
-        sizer6 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行测试'), wx.VERTICAL)
-        sizer6.Add(sizer_enb, 0, wx.EXPAND | wx.ALL, 10)
+        # sizer6 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行测试'), wx.VERTICAL)
+        # sizer6.Add(sizer_enb, 0, wx.EXPAND | wx.ALL, 10)
 
         box1 = wx.BoxSizer(wx.VERTICAL)
         box1.Add(sizer2,0,wx.EXPAND | wx.ALL, 25)
         box1.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
         box1.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 10)
-        box1.Add(sizer6,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 10)        
+        # box1.Add(sizer6,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 10)        
 
         # 自动调整界面尺寸
         self.panel.SetSizer(box1)
