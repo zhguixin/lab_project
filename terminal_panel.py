@@ -763,7 +763,7 @@ class MainFrame(wx.Frame):
         self.sp = wx.SplitterWindow(self)
         self.panel = wx.Panel(self.sp, style=wx.SP_3D)
         self.p1 = MatplotPanel(self.sp)
-        self.sp.SplitVertically(self.panel,self.p1,620)
+        self.sp.SplitVertically(self.panel,self.p1,650)
 
         self.panel.SetBackgroundColour("white")
 
@@ -913,16 +913,16 @@ class MainFrame(wx.Frame):
         # self.status_bar = wx.TextCtrl(self.panel, -1, status_bar_lable, style=wx.TE_READONLY)
         
         # 获取下行链路接收的mac_pdu的个数
-        mac_pdu = wx.StaticText(self.panel, -1, u"mac_pdu的个数:\t")
+        mac_pdu = wx.StaticText(self.panel, -1, u"mac_pdu的个数:")
         self.mac_pdu_value = wx.StaticText(self.panel, -1, '')
 
-        frame_error_rate = wx.StaticText(self.panel, -1, u"误帧率:\t")
+        frame_error_rate = wx.StaticText(self.panel, -1, u"误帧率:")
         self.frame_error_rate_value = wx.StaticText(self.panel, -1, '')
 
-        fn_st = wx.StaticText(self.panel, -1, u"帧号:\t")
+        fn_st = wx.StaticText(self.panel, -1, u"帧号:")
         self.fn = wx.StaticText(self.panel, -1, '')
 
-        sfn_st = wx.StaticText(self.panel, -1, u"子帧号:\t")
+        sfn_st = wx.StaticText(self.panel, -1, u"子帧号:")
         self.sfn = wx.StaticText(self.panel, -1, '')
 
         #详细显示按钮
@@ -993,7 +993,7 @@ class MainFrame(wx.Frame):
         # set the width of the columns in various ways
         self.list.SetColumnWidth(0, 170)
         # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
-        self.list.SetColumnWidth(1, 100)
+        self.list.SetColumnWidth(1, 120)
 
         #上行中心频率
         u_frequency_list = ['20','800']

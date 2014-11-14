@@ -313,7 +313,7 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
         self.lte_sat_eNB_config_0 = lte_sat.eNB_entity_config(False)
         self.lte_sat_eNB_config_0.set_leading_sched_b4_mapping(2, 5)
         self.lte_sat_eNB_config_0.set_leading_map_b4_sending(10)
-        self.lte_sat_eNB_config_0.set_delay_sfc_for_pusch_after_usg(20)
+        # self.lte_sat_eNB_config_0.set_delay_sfc_for_pusch_after_usg(20)
         self.lte_sat_eNB_config_0.add_ul_param(variable_ul_para_0)
           
         self.lte_sat_dl_subframe_mapper_0_0 = lte_sat.dl_subframe_mapper(prbl,10)
@@ -397,8 +397,8 @@ class eNB_ping_15prb_one65_audio(gr.top_block):
         status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_pdu_bytes'])
         status['rx_sr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_sr_num
         status['rx_bsr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_bsr_num
-        # status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
-        # status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
+        status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
+        status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
         status['ip'] = self.ip
         status['route'] = self.route
         status['u_freq'] = self.u_center_freq
@@ -781,7 +781,7 @@ class Detail_Disp(wx.Panel):
         # set the width of the columns in various ways
         self.list.SetColumnWidth(0, 250)
         # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
-        self.list.SetColumnWidth(1, 100)
+        self.list.SetColumnWidth(1, 130)
 
         #上行中心频率
         u_frequency_list = ['20','800']
@@ -872,6 +872,8 @@ class Detail_Disp(wx.Panel):
         # os.system('uhd_usrp_probe')
         time.sleep(2)
         self.tb = eNB_ping_15prb_one65_data(**param)
+        os.system('sudo ifconfig tun0 192.168.200.3')
+        os.system('sudo route add 192.168.200.12 dev tun0')           
         
         self.t_1 = threading.Thread(target = self.update_panel)
         self.t_1.setDaemon(True)
@@ -908,7 +910,9 @@ class Detail_Disp(wx.Panel):
         os.system('rm -rvf *.log *.dat *.test')
         # os.system('uhd_usrp_probe')
         time.sleep(2)
-        self.tb = eNB_ping_15prb_one65_audio(**param)
+        self.tb = eNB_ping_15prb_one65_audio(**param)  
+        os.system('sudo ifconfig tun0 192.168.200.3')
+        os.system('sudo route add 192.168.200.12 dev tun0')   
         
         self.t_1 = threading.Thread(target = self.update_panel)
         self.t_1.setDaemon(True)
@@ -992,7 +996,7 @@ class Detail_Disp(wx.Panel):
 
 class MainFrame(wx.Frame):
     def __init__(self,parent,id):
-        wx.Frame.__init__(self, None, title=u"信关站界面", size=(1000,780))
+        wx.Frame.__init__(self, None, title=u"信关站界面", size=(1000,800))
         self.Centre()
         # self.SetBackgroundColour("white")
 
@@ -1035,7 +1039,7 @@ class MainFrame(wx.Frame):
         #绑定窗口的关闭事件
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         
-        self.DisplayText = wx.TextCtrl(self.panel, -1, '', size=(100,250), style=wx.TE_MULTILINE | wx.TE_READONLY) 
+        self.DisplayText = wx.TextCtrl(self.panel, -1, '', size=(100,430), style=wx.TE_MULTILINE | wx.TE_READONLY) 
         self.DisplayText.SetBackgroundColour('gray')
 
         #虚拟ip地址
