@@ -56,46 +56,35 @@ class eNB_ping_15prb_one65_video(gr.top_block):
                 self.ul_mod_type = ul_mod_type = 2
             else:
                 self.ul_mod_type = ul_mod_type = 1
+
             if param['samp_rate_G'] == '2M':
-                self.samp_rate = samp_rate = 2e6 #2000000
+                self.samp_rate = samp_rate = 2e6
             else:
-                self.samp_rate = samp_rate = 4e6 #4000000
-            # self.rnti = rnti = int(param['RNTI'])
+                self.samp_rate = samp_rate = 4e6  
             self.rnti = rnti = 65
 
             self.dl_rate = dl_rate = float(param['exp_code_rate_d_G'])
             self.ul_rate = ul_rate = float(param['exp_code_rate_u_G'])
+            self.threshold = threshold = float(param['Threshold'])
             self.cell_id = cell_id = int(param['id_cell'])
             self.gain_r = gain_r = int(param['gain_r_G'])
             self.gain_s = gain_s = int(param['gain_s_G'])
-            # self.samp_rate = samp_rate = 4e6
             self.ip = ip = param['ip']
             self.route = route = param['route']
-            self.u_center_freq = u_center_freq = int(param['u_frequency_G'])
-            self.d_center_freq = d_center_freq = int(param['d_frequency_G'])
-            # self.mod_type = mod_type = 1
-            # self.fftl = fftl = 256
-            # self.prbl = prbl = 15
-        except: print '变量初始化失败'
+            self.ul_center_freq = ul_center_freq = int(param['u_frequency_G'])
+            self.dl_center_freq = dl_center_freq = int(param['d_frequency_G'])
 
+        except: print '变量初始化失败'      
         print prbl,fftl,rnti,dl_mod_type,ul_mod_type,dl_rate,ul_rate,cell_id
-        # 15 256 65 1 1 0.4 0.4 10
-        print samp_rate
-        print u_center_freq,d_center_freq
-        # self.rnti = rnti = 65
-        # self.prbl = prbl = 15
-        # print ip,route
-        print 'eNB_ping_15prb_one65_video'
+
+        print samp_rate,ul_center_freq,dl_center_freq
 
         self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(rnti, prbl)
         self.variable_ul_para_0.set_cch_period(10, 4)
         self.variable_ul_para_0.set_srs_period(10, 5)
         self.variable_ul_para_0.set_sch_params(4, 2)
         self.variable_ul_para_0.set_srs_transmissionComb(1)
-          
-        # self.samp_rate = samp_rate = 4e6
-        # self.mod_type = mod_type = 1
-        # self.fftl = fftl = 256
+        self.variable_ul_para_0.enable_bsr_persist(True)
 
         ##################################################
         # Blocks
@@ -108,8 +97,9 @@ class eNB_ping_15prb_one65_video(gr.top_block):
             ),
         )
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)
-        # self.uhd_usrp_source_0.set_center_freq(40e6, 0)
-        self.uhd_usrp_source_0.set_center_freq(u_center_freq*1e6, 0)
+        self.uhd_usrp_source_0.set_center_freq(ul_center_freq*1e6, 0)
+
+
         self.uhd_usrp_source_0.set_gain(gain_r, 0)
         self.uhd_usrp_source_0.set_bandwidth(4e6, 0)
         self.uhd_usrp_sink_0 = uhd.usrp_sink(
@@ -120,10 +110,15 @@ class eNB_ping_15prb_one65_video(gr.top_block):
             ),
         )
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
-        # self.uhd_usrp_sink_0.set_center_freq(20e6, 0)
-        self.uhd_usrp_sink_0.set_center_freq(d_center_freq*1e6, 0)
+        self.uhd_usrp_sink_0.set_center_freq(dl_center_freq*1e6, 0)
         self.uhd_usrp_sink_0.set_gain(gain_s, 0)
         self.uhd_usrp_sink_0.set_bandwidth(4e6, 0)
+        self.rational_resampler_xxx_0_0 = filter.rational_resampler_ccc(
+                interpolation=24,
+                decimation=25,
+                taps=None,
+                fractional_bw=None,
+        )
         self.rational_resampler_xxx_0 = filter.rational_resampler_ccc(
                 interpolation=25,
                 decimation=24,
@@ -133,12 +128,12 @@ class eNB_ping_15prb_one65_video(gr.top_block):
         self.lte_sat_ul_subframe_demapper_0 = lte_sat.ul_subframe_demapper(cell_id,prbl)
         self.lte_sat_ul_baseband_sync_0 = lte_sat.ul_baseband_sync(prbl,fftl,cell_id,0.5,False)
         self.lte_sat_layer2_0 = lte_sat.layer2(cell_id,prbl,dl_mod_type,dl_rate,ul_mod_type,ul_rate)
-        self.lte_sat_layer2_0.create_logic_channel(rnti, 0, lte_sat.mode_um,0)
+        self.lte_sat_layer2_0.create_logic_channel(rnti, 0, lte_sat.mode_um, False)
         
         self.lte_sat_eNB_config_0 = lte_sat.eNB_entity_config(False)
         self.lte_sat_eNB_config_0.set_leading_sched_b4_mapping(2, 5)
         self.lte_sat_eNB_config_0.set_leading_map_b4_sending(15)
-        # self.lte_sat_eNB_config_0.set_delay_sfc_for_pusch_after_usg(20)
+        lte_sat.lte_sys_config.set_subframe2wait_for_pusch_after_usg(20)
         self.lte_sat_eNB_config_0.add_ul_param(variable_ul_para_0)
           
         self.lte_sat_dl_subframe_mapper_0_0 = lte_sat.dl_subframe_mapper(prbl,cell_id)
@@ -150,10 +145,11 @@ class eNB_ping_15prb_one65_video(gr.top_block):
         ##################################################
         self.connect((self.lte_sat_ul_baseband_sync_0, 0), (self.lte_sat_ul_subframe_demapper_0, 0))
         self.connect((self.rational_resampler_xxx_0, 0), (self.uhd_usrp_sink_0, 0))
-        self.connect((self.uhd_usrp_source_0, 0), (self.lte_sat_ul_baseband_sync_0, 0))
         self.connect((self.lte_sat_ul_subframe_demapper_0, 0), (self.lte_sat_layer2_0, 0))
         self.connect((self.lte_sat_dl_baseband_generator_0, 0), (self.rational_resampler_xxx_0, 0))
         self.connect((self.lte_sat_dl_subframe_mapper_0_0, 0), (self.lte_sat_dl_baseband_generator_0, 0))
+        self.connect((self.rational_resampler_xxx_0_0, 0), (self.lte_sat_ul_baseband_sync_0, 0))
+        self.connect((self.uhd_usrp_source_0, 0), (self.rational_resampler_xxx_0_0, 0))
 
         ##################################################
         # Asynch Message Connections
@@ -190,8 +186,8 @@ class eNB_ping_15prb_one65_video(gr.top_block):
         status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
         status['ip'] = self.ip
         status['route'] = self.route
-        status['u_freq'] = self.u_center_freq
-        status['d_freq'] = self.d_center_freq
+        status['u_freq'] = self.ul_center_freq
+        status['d_freq'] = self.dl_center_freq
 
         status['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_wrong_mac_pdu_count'])
         status['rx_wrong_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_wrong_mac_pdu_bytes'])
@@ -211,7 +207,7 @@ class eNB_ping_15prb_one65_video(gr.top_block):
         status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_pdu_bytes'])
         status['rx_sr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_sr_num
         status['rx_bsr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_bsr_num
-        return status
+        return status                        
 
 class eNB_ping_15prb_one65_audio(gr.top_block):
 
@@ -449,14 +445,13 @@ class eNB_ping_15prb_one65_data(gr.top_block):
             self.gain_s = gain_s = int(param['gain_s_G'])
             self.ip = ip = param['ip']
             self.route = route = param['route']
-            self.u_center_freq = u_center_freq = int(param['u_frequency_G'])
-            self.d_center_freq = d_center_freq = int(param['d_frequency_G'])
-            self.ul_center_freq = ul_center_freq = 20e6
-            # self.samp_rate = samp_rate = 4e6
-            self.mod_type = mod_type = 1
-            # self.fftl = fftl = 256
-            self.dl_center_freq = dl_center_freq = 40e6
-        except: print '变量初始化失败'
+            self.ul_center_freq = ul_center_freq = int(param['u_frequency_G'])
+            self.dl_center_freq = dl_center_freq = int(param['d_frequency_G'])
+
+        except: print '变量初始化失败'      
+        print prbl,fftl,rnti,dl_mod_type,ul_mod_type,dl_rate,ul_rate,cell_id
+        
+        print samp_rate,ul_center_freq,dl_center_freq
 
         self.variable_ul_para_0 = variable_ul_para_0 = lte_sat.ul_parameter(rnti, prbl)
         self.variable_ul_para_0.set_cch_period(10, 4)
@@ -476,8 +471,8 @@ class eNB_ping_15prb_one65_data(gr.top_block):
             ),
         )
         self.uhd_usrp_source_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_source_0.set_center_freq(ul_center_freq, 0)
-        self.uhd_usrp_source_0.set_gain(10, 0)
+        self.uhd_usrp_source_0.set_center_freq(ul_center_freq*1e6, 0)
+        self.uhd_usrp_source_0.set_gain(gain_r, 0)
         self.uhd_usrp_source_0.set_bandwidth(4e6, 0)
         self.uhd_usrp_sink_0 = uhd.usrp_sink(
             device_addr="addr=192.168.10.2",
@@ -487,8 +482,8 @@ class eNB_ping_15prb_one65_data(gr.top_block):
             ),
         )
         self.uhd_usrp_sink_0.set_samp_rate(samp_rate)
-        self.uhd_usrp_sink_0.set_center_freq(dl_center_freq, 0)
-        self.uhd_usrp_sink_0.set_gain(10, 0)
+        self.uhd_usrp_sink_0.set_center_freq(dl_center_freq*1e6, 0)
+        self.uhd_usrp_sink_0.set_gain(gain_s, 0)
         self.uhd_usrp_sink_0.set_bandwidth(4e6, 0)
         self.rational_resampler_xxx_0_0 = filter.rational_resampler_ccc(
                 interpolation=24,
@@ -502,9 +497,9 @@ class eNB_ping_15prb_one65_data(gr.top_block):
                 taps=None,
                 fractional_bw=None,
         )
-        self.lte_sat_ul_subframe_demapper_0 = lte_sat.ul_subframe_demapper(10,prbl)
-        self.lte_sat_ul_baseband_sync_0 = lte_sat.ul_baseband_sync(prbl,fftl,10,0.5,False)
-        self.lte_sat_layer2_0 = lte_sat.layer2(10,prbl,mod_type,0.4,mod_type,0.4)
+        self.lte_sat_ul_subframe_demapper_0 = lte_sat.ul_subframe_demapper(cell_id,prbl)
+        self.lte_sat_ul_baseband_sync_0 = lte_sat.ul_baseband_sync(prbl,fftl,cell_id,0.5,False)
+        self.lte_sat_layer2_0 = lte_sat.layer2(cell_id,prbl,dl_mod_type,dl_rate,ul_mod_type,ul_rate)
         self.lte_sat_layer2_0.create_logic_channel(rnti, 0, lte_sat.mode_um, False)
         
         self.lte_sat_eNB_config_0 = lte_sat.eNB_entity_config(False)
@@ -513,7 +508,7 @@ class eNB_ping_15prb_one65_data(gr.top_block):
         lte_sat.lte_sys_config.set_subframe2wait_for_pusch_after_usg(20)
         self.lte_sat_eNB_config_0.add_ul_param(variable_ul_para_0)
           
-        self.lte_sat_dl_subframe_mapper_0_0 = lte_sat.dl_subframe_mapper(prbl,10)
+        self.lte_sat_dl_subframe_mapper_0_0 = lte_sat.dl_subframe_mapper(prbl,cell_id)
         self.lte_sat_dl_baseband_generator_0 = lte_sat.dl_baseband_generator(prbl, fftl)
         self.blocks_tuntap_pdu_0 = blocks.tuntap_pdu("tun0", 100000)
 
@@ -557,7 +552,14 @@ class eNB_ping_15prb_one65_data(gr.top_block):
         status_temp['tx_rlc_sdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bytes
         status_temp['tx_rlc_sdu_bps'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_sdu_bps
         status_temp['tx_rlc_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_pdu_count
-        status_temp['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_pdu_bytes
+        status_temp['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().tx_rlc_pdu_bytes        
+        
+        status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
+        status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
+        status['ip'] = self.ip
+        status['route'] = self.route
+        status['u_freq'] = self.ul_center_freq
+        status['d_freq'] = self.dl_center_freq
 
         status['rx_wrong_mac_pdu_count'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_wrong_mac_pdu_count'])
         status['rx_wrong_mac_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['rx_wrong_mac_pdu_bytes'])
@@ -577,14 +579,7 @@ class eNB_ping_15prb_one65_data(gr.top_block):
         status['tx_rlc_pdu_bytes'] = self.lte_sat_layer2_0.get_stat_info().data_convert(status_temp['tx_rlc_pdu_bytes'])
         status['rx_sr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_sr_num
         status['rx_bsr_num'] = self.lte_sat_layer2_0.get_stat_info().rx_bsr_num
-        # status['stat_info_0'] = self.lte_sat_layer2_0.get_stat_string(0)
-        # status['stat_info_1'] = self.lte_sat_layer2_0.get_stat_string(1)
-        status['ip'] = self.ip
-        status['route'] = self.route
-        status['u_freq'] = self.u_center_freq
-        status['d_freq'] = self.d_center_freq
-
-        return status
+        return status                
 
 class PanelOne(wx.Panel):
     def __init__(self, parent):
@@ -745,10 +740,7 @@ class Detail_Disp(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.Centre()
         self.parent = parent
-        self.SetBackgroundColour("white")
-
-        # self.update_button = wx.Button(self, -1, u"更新")
-        # self.Bind(wx.EVT_BUTTON, self.OnUpdate, self.update_button)      
+        self.SetBackgroundColour("white")   
         
         Publisher().subscribe(self.updateDisplay, "update")  
 
@@ -998,30 +990,6 @@ class Detail_Disp(wx.Panel):
         for index in range(len(rows)):
             self.list.SetStringItem(index, 1, str(rows[index][1]))
 
-    # def OnUpdate(self,event):
-    #     self.rows = [('RX CRC错误总包数','1'),
-    #     ('RX CRC错误字节数','2'),
-    #     ('RX CRC正确总包数','2'),
-    #     ('RX CRC正确字节数','4'),
-    #     ('','5'),
-    #     ('MAC==>RLC总包数','1'),
-    #     ('MAC==>RLC字节数','1'),
-    #     ('','1'),
-    #     ('RLC==>高层总包数','1'),
-    #     ('RLC==>高层字节数','1'),
-    #     ('','1'),
-    #     ('TX 高层==>RLC总包数','1'),
-    #     ('TX 高层==>RLC字节数','1'),
-    #     ('','1'),
-    #     ('eNB检测到的SR数','1'),
-    #     ('eNB检测到的BSR数','1'),
-    #     ('TX RLC==>MAC总包数','1'),
-    #     ('TX RLC==>MAC字节数','1'),
-    #     ]
-
-    #     for index in range(len(self.rows)):
-    #         self.list.SetStringItem(index, 1, self.rows[index][1])
-
 class MainFrame(wx.Frame):
     def __init__(self,parent,id):
         wx.Frame.__init__(self, None, title=u"信关站界面", size=(1000,780))
@@ -1092,6 +1060,7 @@ class MainFrame(wx.Frame):
         self.detail_button.SetBackgroundColour('black')
         self.detail_button.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON,self.Detail,self.detail_button)
+        self.detail_button.Disable()
 
         #连接按钮
         self.connect_button = wx.Button(self.panel, -1, u"连接")
