@@ -784,6 +784,15 @@ class Detail_Disp(wx.Panel):
         # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
         self.list.SetColumnWidth(1, 130)
 
+        #调制方式
+        ModtypeList = ['QPSK','16QAM']
+        modtype_st = wx.StaticText(self, -1, u"调制方式:")
+        self.modtype = wx.ComboBox(self, -1, 'QPSK', wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
+
+        PRBList = ['1.4','3']
+        prb_statictext = wx.StaticText(self, -1, u"链路带宽(MHz):")
+        self.prb_c = wx.ComboBox(self, -1, '3', wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
+
         #上行中心频率
         u_frequency_list = ['20','800','900','1000','1200']
         u_frequency_st_param = wx.StaticText(self, -1, u"上行中心频率(MHz):")
@@ -798,14 +807,10 @@ class Detail_Disp(wx.Panel):
          wx.DefaultSize, d_frequency_list, 0)
         # self.d_frequency = wx.TextCtrl(self,-1,'40')
 
-        PRBList = ['1.4','3']
-        prb_statictext = wx.StaticText(self, -1, u"链路带宽(MHz):")
-        self.prb_c = wx.ComboBox(self, -1, '3', wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
-
-        #调制方式
-        ModtypeList = ['QPSK','16QAM']
-        modtype_st = wx.StaticText(self, -1, u"调制方式:")
-        self.modtype = wx.ComboBox(self, -1, 'QPSK', wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
+        self.run_eNB_data_btn = wx.Button(self, -1, u"数据业务演示")
+        # self.run_eNB_data_btn.SetBackgroundColour('black')
+        # self.run_eNB_data_btn.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Data, self.run_eNB_data_btn)        
 
         self.run_eNB_audio_btn = wx.Button(self, -1, u"音频业务演示")
         # self.run_eNB_audio_btn.SetBackgroundColour('black')
@@ -816,11 +821,6 @@ class Detail_Disp(wx.Panel):
         # self.run_eNB_video_btn.SetBackgroundColour('black')
         # self.run_eNB_video_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunENB_Video, self.run_eNB_video_btn)
-
-        self.run_eNB_data_btn = wx.Button(self, -1, u"数据业务演示")
-        # self.run_eNB_data_btn.SetBackgroundColour('black')
-        # self.run_eNB_data_btn.SetForegroundColour('white')
-        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Data, self.run_eNB_data_btn)        
 
         #######开始布局############
         sizer1 = wx.BoxSizer(wx.VERTICAL)

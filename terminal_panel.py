@@ -582,7 +582,7 @@ class ue65_ping_15prb_data(gr.top_block):
 
 class MatplotPanel(wx.Panel):
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent)
+        wx.Panel.__init__(self, parent,style = wx.TAB_TRAVERSAL)
         self.figure = Figure()
         # self.axes = self.figure.add_subplot(1,1,1)
         # self.axes = self.figure.gca(projection='3d')
@@ -738,7 +738,7 @@ class MatplotPanel(wx.Panel):
 
 class PanelOne(wx.Panel):
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent=parent)
+        wx.Panel.__init__(self, parent=parent,style = wx.TAB_TRAVERSAL)
         self.state = ['Red']
         self.Bind(wx.EVT_PAINT, self.OnPaint)
 
@@ -761,7 +761,7 @@ class MainFrame(wx.Frame):
         self.Centre()
 
         self.sp = wx.SplitterWindow(self)
-        self.panel = wx.Panel(self.sp, style=wx.SP_3D)
+        self.panel = wx.Panel(self.sp, style=wx.SP_3D| wx.TAB_TRAVERSAL)
         self.p1 = MatplotPanel(self.sp)
         self.sp.SplitVertically(self.panel,self.p1,650)
 
@@ -995,6 +995,15 @@ class MainFrame(wx.Frame):
         # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
         self.list.SetColumnWidth(1, 120)
 
+        #调制方式
+        ModtypeList = ['QPSK','16QAM']
+        modtype_st = wx.StaticText(self.panel, -1, u"调制方式:")
+        self.modtype = wx.ComboBox(self.panel, -1, 'QPSK', wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
+        
+        PRBList = ['1.4','3']
+        prb_statictext = wx.StaticText(self.panel, -1, u"链路带宽(MHz):")
+        self.prb_c = wx.ComboBox(self.panel, -1, '3', wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
+
         #上行中心频率
         u_frequency_list = ['20','800','900','1000','1200']
         u_frequency_st_param = wx.StaticText(self.panel, -1, u"上行中心频率(MHz):")
@@ -1009,14 +1018,10 @@ class MainFrame(wx.Frame):
          wx.DefaultSize, d_frequency_list, 0)
         # self.d_frequency = wx.TextCtrl(self.panel,-1,'40')
 
-        PRBList = ['1.4','3']
-        prb_statictext = wx.StaticText(self.panel, -1, u"链路带宽(MHz):")
-        self.prb_c = wx.ComboBox(self.panel, -1, '3', wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
-
-        #调制方式
-        ModtypeList = ['QPSK','16QAM']
-        modtype_st = wx.StaticText(self.panel, -1, u"调制方式:")
-        self.modtype = wx.ComboBox(self.panel, -1, 'QPSK', wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
+        self.run_ue_data_btn = wx.Button(self.panel, -1, u"数据业务演示")
+        # self.run_ue_data_btn.SetBackgroundColour('black')
+        # self.run_ue_data_btn.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnRunUE_Data, self.run_ue_data_btn)
 
         self.run_ue_audio_btn = wx.Button(self.panel, -1, u"音频业务演示")
         # self.run_ue_audio_btn.SetBackgroundColour('black')
@@ -1027,11 +1032,6 @@ class MainFrame(wx.Frame):
         # self.run_ue_video_btn.SetBackgroundColour('black')
         # self.run_ue_video_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunUE_Video, self.run_ue_video_btn)
-
-        self.run_ue_data_btn = wx.Button(self.panel, -1, u"数据业务演示")
-        # self.run_ue_data_btn.SetBackgroundColour('black')
-        # self.run_ue_data_btn.SetForegroundColour('white')
-        self.Bind(wx.EVT_BUTTON, self.OnRunUE_Data, self.run_ue_data_btn)
 
         ###########开始布局############
         sizer1 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
@@ -1216,7 +1216,7 @@ class MainFrame(wx.Frame):
         self.d_frequency_param.Disable()
         self.prb_c.Disable()
         self.modtype.Disable()
-                
+
         self.p2 = threading.Thread(target = self.Run_UE_Audio)
         self.p2.setDaemon(True)
         self.p2.start()   
@@ -1560,7 +1560,7 @@ class DetailDialog_Display(wx.Frame):
             style=wx.CAPTION|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.SYSTEM_MENU)
         self.Centre()
         # self.parent = parent
-        self.panel = wx.Panel(self, style=wx.SP_3D)
+        self.panel = wx.Panel(self, style=wx.SP_3D| wx.TAB_TRAVERSAL)
         self.SetBackgroundColour("white")
 
         #创建面板
