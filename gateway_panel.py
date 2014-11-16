@@ -736,8 +736,9 @@ class Detail_Dialog(wx.Frame):
             self.grid.SetCellValue(row, 1, str(list_value[row]))
 
 class Detail_Disp(wx.Panel):
+
     def __init__(self,parent):
-        wx.Panel.__init__(self, parent)
+        wx.Panel.__init__(self, parent,style = wx.TAB_TRAVERSAL)
         self.Centre()
         self.parent = parent
         self.SetBackgroundColour("white")   
@@ -784,30 +785,39 @@ class Detail_Disp(wx.Panel):
         self.list.SetColumnWidth(1, 130)
 
         #上行中心频率
-        u_frequency_list = ['20','800']
+        u_frequency_list = ['20','800','900','1000','1200']
         u_frequency_st_param = wx.StaticText(self, -1, u"上行中心频率(MHz):")
         self.u_frequency_param = wx.ComboBox(self, -1, '20', wx.DefaultPosition,
          wx.DefaultSize, u_frequency_list, 0)
         # self.u_frequency = wx.TextCtrl(self,-1,'20')
 
         #下行中心频率
-        d_frequency_list = ['40','900']
+        d_frequency_list = ['40','900','1000','1200']
         d_frequency_st_param = wx.StaticText(self, -1, u"下行中心频率(MHz):")
         self.d_frequency_param = wx.ComboBox(self, -1, '40', wx.DefaultPosition,
          wx.DefaultSize, d_frequency_list, 0)
         # self.d_frequency = wx.TextCtrl(self,-1,'40')
 
-        self.run_eNB_audio_btn = wx.Button(self, -1, u"运行eNB-音频业务演示")
+        PRBList = ['1.4','3']
+        prb_statictext = wx.StaticText(self, -1, u"链路带宽(MHz):")
+        self.prb_c = wx.ComboBox(self, -1, '3', wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
+
+        #调制方式
+        ModtypeList = ['QPSK','16QAM']
+        modtype_st = wx.StaticText(self, -1, u"调制方式:")
+        self.modtype = wx.ComboBox(self, -1, 'QPSK', wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
+
+        self.run_eNB_audio_btn = wx.Button(self, -1, u"音频业务演示")
         # self.run_eNB_audio_btn.SetBackgroundColour('black')
         # self.run_eNB_audio_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunENB_Audio, self.run_eNB_audio_btn)
 
-        self.run_eNB_video_btn = wx.Button(self, -1, u"运行eNB-视频业务演示")
+        self.run_eNB_video_btn = wx.Button(self, -1, u"视频业务演示")
         # self.run_eNB_video_btn.SetBackgroundColour('black')
         # self.run_eNB_video_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunENB_Video, self.run_eNB_video_btn)
 
-        self.run_eNB_data_btn = wx.Button(self, -1, u"运行eNB-数据业务演示")
+        self.run_eNB_data_btn = wx.Button(self, -1, u"数据业务演示")
         # self.run_eNB_data_btn.SetBackgroundColour('black')
         # self.run_eNB_data_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunENB_Data, self.run_eNB_data_btn)        
@@ -817,8 +827,12 @@ class Detail_Disp(wx.Panel):
         sizer1.Add(self.list, 0, wx.EXPAND|wx.TOP)
         # sizer1.Add(self.update_button, 0, wx.EXPAND|wx.TOP)
 
-        sizer2 = wx.FlexGridSizer(cols=2, hgap=10, vgap=20)
+        sizer2 = wx.FlexGridSizer(cols=2, hgap=5, vgap=10)
         sizer2.AddGrowableCol(1)
+        sizer2.Add(modtype_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer2.Add(self.modtype, 0, wx.EXPAND)
+        sizer2.Add(prb_statictext, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer2.Add(self.prb_c, 0, wx.EXPAND)
         sizer2.Add(u_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer2.Add(self.u_frequency_param, 0, wx.EXPAND)
         sizer2.Add(d_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
@@ -827,7 +841,7 @@ class Detail_Disp(wx.Panel):
         sizer_st_param = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'本地运行参数配置'), wx.VERTICAL)
         sizer_st_param.Add(sizer2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
 
-        box_st2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'本地运行测试'), wx.VERTICAL)
+        box_st2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'本地运行eNB测试'), wx.HORIZONTAL)
         box_st2.Add(self.run_eNB_data_btn, 0, wx.ALIGN_CENTER)
         box_st2.Add((20,20), 0)
         box_st2.Add(self.run_eNB_audio_btn, 0, wx.ALIGN_CENTER)
@@ -847,6 +861,8 @@ class Detail_Disp(wx.Panel):
         self.run_eNB_data_btn.Disable()
         self.u_frequency_param.Disable()
         self.d_frequency_param.Disable()
+        self.prb_c.Disable()
+        self.modtype.Disable()
         
         self.p_data = threading.Thread(target = self.Run_ENB_Data)
         self.p_data.setDaemon(True)
@@ -856,14 +872,17 @@ class Detail_Disp(wx.Panel):
         param_temp = {}
         param_temp[u'd_frequency_G'] = self.u_frequency_param.GetValue()
         param_temp[u'u_frequency_G'] = self.d_frequency_param.GetValue()
+        param_temp[u'Bandwidth'] = self.prb_c.GetValue()
+        param_temp[u'mod_type_d'] = self.modtype.GetValue()
+        param_temp[u'mod_type_u'] = self.modtype.GetValue()
 
         param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
         u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', 
-        u'mod_type_d': u'QPSK',u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log',
-        u'mod_type_u': u'QPSK',u'm_part': u'2', u'shift_G': u'1',
-        u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', u'iter_num_G': u'4',
+        u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log',
+        u'm_part': u'2', u'shift_G': u'1',u'iter_num_G': u'4',
+        u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', 
         u'M_part': u'2', u'route': u'192.168.200.3', u'samp_rate_G': u'4M',
-        u'Bandwidth': u'3', u'data_rules_G': u'1', u'gain_r_G': u'10',
+        u'data_rules_G': u'1', u'gain_r_G': u'10',
         u'DMRS2_G': u'4', u'id_cell': 10}
 
         param.update(param_temp)
@@ -996,12 +1015,12 @@ class Detail_Disp(wx.Panel):
 
 class MainFrame(wx.Frame):
     def __init__(self,parent,id):
-        wx.Frame.__init__(self, None, title=u"信关站界面", size=(1000,800))
+        wx.Frame.__init__(self, None, title=u"信关站界面", size=(1000,820))
         self.Centre()
         # self.SetBackgroundColour("white")
 
         self.sp = wx.SplitterWindow(self)
-        self.panel = wx.Panel(self.sp, style=wx.SP_3D)
+        self.panel = wx.Panel(self.sp, style=wx.SP_3D|wx.TAB_TRAVERSAL)
         self.p1 = Detail_Disp(self.sp)
         # self.sp.SplitVertically(self.panel,self.p1,500)
         self.sp.SplitVertically(self.p1,self.panel,400)

@@ -991,35 +991,44 @@ class MainFrame(wx.Frame):
                 self.list.SetStringItem(index, col+1, text)
 
         # set the width of the columns in various ways
-        self.list.SetColumnWidth(0, 170)
+        self.list.SetColumnWidth(0, 180)
         # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
         self.list.SetColumnWidth(1, 120)
 
         #上行中心频率
-        u_frequency_list = ['20','800']
+        u_frequency_list = ['20','800','900','1000','1200']
         u_frequency_st_param = wx.StaticText(self.panel, -1, u"上行中心频率(MHz):")
         self.u_frequency_param = wx.ComboBox(self.panel, -1, '20', wx.DefaultPosition,
          wx.DefaultSize, u_frequency_list, 0)
         # self.u_frequency = wx.TextCtrl(self.panel,-1,'20')
 
         #下行中心频率
-        d_frequency_list = ['40','900']
+        d_frequency_list = ['40','900','1000','1200']
         d_frequency_st_param = wx.StaticText(self.panel, -1, u"下行中心频率(MHz):")
         self.d_frequency_param = wx.ComboBox(self.panel, -1, '40', wx.DefaultPosition,
          wx.DefaultSize, d_frequency_list, 0)
         # self.d_frequency = wx.TextCtrl(self.panel,-1,'40')
 
-        self.run_ue_audio_btn = wx.Button(self.panel, -1, u"运行UE-音频业务演示")
+        PRBList = ['1.4','3']
+        prb_statictext = wx.StaticText(self.panel, -1, u"链路带宽(MHz):")
+        self.prb_c = wx.ComboBox(self.panel, -1, '3', wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
+
+        #调制方式
+        ModtypeList = ['QPSK','16QAM']
+        modtype_st = wx.StaticText(self.panel, -1, u"调制方式:")
+        self.modtype = wx.ComboBox(self.panel, -1, 'QPSK', wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
+
+        self.run_ue_audio_btn = wx.Button(self.panel, -1, u"音频业务演示")
         # self.run_ue_audio_btn.SetBackgroundColour('black')
         # self.run_ue_audio_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunUE_Audio, self.run_ue_audio_btn)
 
-        self.run_ue_video_btn = wx.Button(self.panel, -1, u"运行UE-视频业务演示")
+        self.run_ue_video_btn = wx.Button(self.panel, -1, u"视频业务演示")
         # self.run_ue_video_btn.SetBackgroundColour('black')
         # self.run_ue_video_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunUE_Video, self.run_ue_video_btn)
 
-        self.run_ue_data_btn = wx.Button(self.panel, -1, u"运行UE-数据业务演示")
+        self.run_ue_data_btn = wx.Button(self.panel, -1, u"数据业务演示")
         # self.run_ue_data_btn.SetBackgroundColour('black')
         # self.run_ue_data_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunUE_Data, self.run_ue_data_btn)
@@ -1117,17 +1126,21 @@ class MainFrame(wx.Frame):
         box_st1 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u''), wx.VERTICAL)
         box_st1.Add(box2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 
-        sizer_param = wx.FlexGridSizer(cols=2, hgap=10, vgap=20)
+        sizer_param = wx.FlexGridSizer(cols=2, hgap=5, vgap=10)
         sizer_param.AddGrowableCol(1)
+        sizer_param.Add(modtype_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer_param.Add(self.modtype, 0, wx.EXPAND)
+        sizer_param.Add(prb_statictext, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer_param.Add(self.prb_c, 0, wx.EXPAND)
         sizer_param.Add(u_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.u_frequency_param, 0, wx.EXPAND)
         sizer_param.Add(d_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer_param.Add(self.d_frequency_param, 0, wx.EXPAND)        
+        sizer_param.Add(self.d_frequency_param, 0, wx.EXPAND)
 
         box_st_param = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行参数配置'), wx.VERTICAL)
         box_st_param.Add(sizer_param, 0, wx.ALIGN_CENTER)
 
-        box_st2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行测试'), wx.VERTICAL)
+        box_st2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行UE测试'), wx.HORIZONTAL)
         box_st2.Add(self.run_ue_data_btn, 0, wx.ALIGN_CENTER)
         box_st2.Add((20,20), 0)
         box_st2.Add(self.run_ue_audio_btn, 0, wx.ALIGN_CENTER)
@@ -1156,6 +1169,8 @@ class MainFrame(wx.Frame):
         self.run_ue_data_btn.Disable()
         self.u_frequency_param.Disable()
         self.d_frequency_param.Disable()
+        self.prb_c.Disable()
+        self.modtype.Disable()
         
         self.p2 = threading.Thread(target = self.Run_UE_Data)
         self.p2.setDaemon(True)
@@ -1165,11 +1180,13 @@ class MainFrame(wx.Frame):
         param_temp = {}
         param_temp[u'd_frequency_T'] = self.u_frequency_param.GetValue()
         param_temp[u'u_frequency_T'] = self.d_frequency_param.GetValue()
+        param_temp[u'Bandwidth'] = self.prb_c.GetValue()
+        param_temp[u'mod_type_u'] = self.modtype.GetValue()
+        param_temp[u'mod_type_d'] = self.modtype.GetValue()
 
         param = {u'n_pucch': u'0', u'work_mod': u'1', u'DMRS1_T': u'4',
         u'Delta_ss_T': u'10', u'algorithm_T': u'Max_Log',
-        u'mod_type_d': u'QPSK', u'Bandwidth': u'3', u'samp_rate_T': u'4M',
-        u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10', u'mod_type_u': u'QPSK',
+        u'samp_rate_T': u'4M',u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10',
         u'decision_type_T': u'soft', u'shift_T': u'1',u'IP': u'192.168.200.111',
         u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
         u'RNTI': u'65', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1',
@@ -1197,7 +1214,9 @@ class MainFrame(wx.Frame):
         self.run_ue_audio_btn.Disable()
         self.u_frequency_param.Disable()
         self.d_frequency_param.Disable()
-        
+        self.prb_c.Disable()
+        self.modtype.Disable()
+                
         self.p2 = threading.Thread(target = self.Run_UE_Audio)
         self.p2.setDaemon(True)
         self.p2.start()   
@@ -1206,11 +1225,13 @@ class MainFrame(wx.Frame):
         param_temp = {}
         param_temp[u'd_frequency_T'] = self.u_frequency_param.GetValue()
         param_temp[u'u_frequency_T'] = self.d_frequency_param.GetValue()
+        param_temp[u'Bandwidth'] = self.prb_c.GetValue()
+        param_temp[u'mod_type_u'] = self.modtype.GetValue()
+        param_temp[u'mod_type_d'] = self.modtype.GetValue()        
 
         param = {u'n_pucch': u'0', u'work_mod': u'1', u'DMRS1_T': u'4',
         u'Delta_ss_T': u'10', u'algorithm_T': u'Max_Log',
-        u'mod_type_d': u'QPSK', u'Bandwidth': u'3', u'samp_rate_T': u'4M',
-        u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10', u'mod_type_u': u'QPSK',
+        u'samp_rate_T': u'4M',u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10',
         u'decision_type_T': u'soft', u'shift_T': u'1',u'IP': u'192.168.200.111',
         u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
         u'RNTI': u'65', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1',
@@ -1237,6 +1258,8 @@ class MainFrame(wx.Frame):
         self.run_ue_video_btn.Disable()
         self.u_frequency_param.Disable()
         self.d_frequency_param.Disable()
+        self.prb_c.Disable()
+        self.modtype.Disable()        
         
         self.p2 = threading.Thread(target = self.Run_UE_Video)
         self.p2.setDaemon(True)
@@ -1246,14 +1269,17 @@ class MainFrame(wx.Frame):
         param_temp = {}
         param_temp[u'd_frequency_T'] = self.u_frequency_param.GetValue()
         param_temp[u'u_frequency_T'] = self.d_frequency_param.GetValue()
+        param_temp[u'Bandwidth'] = self.prb_c.GetValue()
+        param_temp[u'mod_type_u'] = self.modtype.GetValue()
+        param_temp[u'mod_type_d'] = self.modtype.GetValue()        
 
         param = {u'n_pucch': u'0', u'work_mod': u'2', u'DMRS1_T': u'4', u'Delta_ss_T': u'10',
-        u'SRS_offset': u'0', u'algorithm_T': u'Max_Log', u'mod_type_d': u'QPSK',
+        u'SRS_offset': u'0', u'algorithm_T': u'Max_Log',
         u'gain_s_T': u'10', u'samp_rate_T': u'4M', u'C_SRS': u'4', u'IP': u'192.168.200.111',
-        u'RNTI': u'65', u'mod_type_u': u'QPSK', u'decision_type_T': u'soft', u'shift_T': u'1',
+        u'RNTI': u'65', u'decision_type_T': u'soft', u'shift_T': u'1',
         u'm_part': u'2', u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
         u'n_RRC': u'10', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1', u'M_part': u'2',
-        u'gain_r_T': u'10', u'SRS_period': u'2', u'id_cell': 10, u'Bandwidth': u'3',
+        u'gain_r_T': u'10', u'SRS_period': u'2', u'id_cell': 10,
         u'iter_num_T': u'4', u'SR_offset': u'2', u'Threshold': u'0.5', u'route': u'192.168.200.333'}
         
         param.update(param_temp)
