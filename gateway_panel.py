@@ -743,9 +743,24 @@ class Detail_Disp(wx.Panel):
         self.parent = parent
         self.SetBackgroundColour("white")   
         
+        self.param_config = ConfigParser.ConfigParser()
+        self.param_config.read("param.conf")
+
+        # 参数从配置文件读取，如果配置文件不存在，则使用默认值
+        try: s_modtype = self.param_config.get("Gateway_station", "s_modtype")
+        except: s_modtype = 'QPSK'
+        try: s_prb_c = self.param_config.get("Gateway_station", "s_prb_c")
+        except: s_prb_c = '1.4'
+        try: s_u_frequency = self.param_config.get("Gateway_station", "s_u_frequency")
+        except: s_u_frequency = '800'
+        try: s_d_frequency = self.param_config.get("Gateway_station", "s_d_frequency")
+        except: s_d_frequency = '900'    
+        try: s_log_level = self.param_config.get("Gateway_station", "s_log_level")
+        except: s_log_level = 'debug'
+
         Publisher().subscribe(self.updateDisplay, "update")  
 
-        self.list = wx.ListCtrl(parent, -1, style=wx.LC_REPORT, size=(150,450))
+        self.list = wx.ListCtrl(parent, -1, style=wx.LC_REPORT, size=(150,410))
 
         columns = ['名称','值']
 
@@ -787,25 +802,30 @@ class Detail_Disp(wx.Panel):
         #调制方式
         ModtypeList = ['QPSK','16QAM']
         modtype_st = wx.StaticText(self, -1, u"调制方式:")
-        self.modtype = wx.ComboBox(self, -1, 'QPSK', wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
+        self.modtype = wx.ComboBox(self, -1, s_modtype, wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
 
         PRBList = ['1.4','3']
         prb_statictext = wx.StaticText(self, -1, u"链路带宽(MHz):")
-        self.prb_c = wx.ComboBox(self, -1, '3', wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
+        self.prb_c = wx.ComboBox(self, -1, s_prb_c, wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
 
         #上行中心频率
         u_frequency_list = ['20','800','900','1000','1200']
         u_frequency_st_param = wx.StaticText(self, -1, u"上行中心频率(MHz):")
-        self.u_frequency_param = wx.ComboBox(self, -1, '20', wx.DefaultPosition,
+        self.u_frequency_param = wx.ComboBox(self, -1, s_u_frequency, wx.DefaultPosition,
          wx.DefaultSize, u_frequency_list, 0)
         # self.u_frequency = wx.TextCtrl(self,-1,'20')
 
         #下行中心频率
         d_frequency_list = ['40','900','1000','1200']
         d_frequency_st_param = wx.StaticText(self, -1, u"下行中心频率(MHz):")
-        self.d_frequency_param = wx.ComboBox(self, -1, '40', wx.DefaultPosition,
+        self.d_frequency_param = wx.ComboBox(self, -1, s_d_frequency, wx.DefaultPosition,
          wx.DefaultSize, d_frequency_list, 0)
         # self.d_frequency = wx.TextCtrl(self,-1,'40')
+
+        log_level_list = ["notset","debug","info" ,"notice" ,"warn"  ,"error" ,"crit" ,"alert","fatal","emerg"]
+        log_level_st = wx.StaticText(self, -1, u"配置日志级别:")
+        self.log_level = wx.ComboBox(self, -1, s_log_level, wx.DefaultPosition,
+         wx.DefaultSize, log_level_list, 0)
 
         self.run_eNB_data_btn = wx.Button(self, -1, u"数据业务演示")
         # self.run_eNB_data_btn.SetBackgroundColour('black')
@@ -822,6 +842,9 @@ class Detail_Disp(wx.Panel):
         # self.run_eNB_video_btn.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON, self.OnRunENB_Video, self.run_eNB_video_btn)
 
+        self.stop_eNB_btn = wx.Button(self, -1, u"停止运行")
+        self.Bind(wx.EVT_BUTTON, self.OnStopENB, self.stop_eNB_btn)        
+
         #######开始布局############
         sizer1 = wx.BoxSizer(wx.VERTICAL)
         sizer1.Add(self.list, 0, wx.EXPAND|wx.TOP)
@@ -837,16 +860,26 @@ class Detail_Disp(wx.Panel):
         sizer2.Add(self.u_frequency_param, 0, wx.EXPAND)
         sizer2.Add(d_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer2.Add(self.d_frequency_param, 0, wx.EXPAND)
+        sizer2.Add(log_level_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer2.Add(self.log_level, 0, wx.EXPAND)        
 
         sizer_st_param = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'本地运行参数配置'), wx.VERTICAL)
         sizer_st_param.Add(sizer2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
 
-        box_st2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'本地运行eNB测试'), wx.HORIZONTAL)
-        box_st2.Add(self.run_eNB_data_btn, 0, wx.ALIGN_CENTER)
+        sizer_run = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_run.Add(self.run_eNB_data_btn, 0, wx.ALIGN_CENTER)
+        sizer_run.Add((20,20), 0)
+        sizer_run.Add(self.run_eNB_audio_btn, 0, wx.ALIGN_CENTER)
+        sizer_run.Add((20,20), 0)
+        sizer_run.Add(self.run_eNB_video_btn, 0, wx.ALIGN_CENTER)       
+
+        sizer_stop = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_stop.Add(self.stop_eNB_btn, 0, wx.ALIGN_CENTER)  
+
+        box_st2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'本地运行eNB测试'), wx.VERTICAL)   
+        box_st2.Add(sizer_run, 0, wx.ALIGN_CENTER)
         box_st2.Add((20,20), 0)
-        box_st2.Add(self.run_eNB_audio_btn, 0, wx.ALIGN_CENTER)
-        box_st2.Add((20,20), 0)
-        box_st2.Add(self.run_eNB_video_btn, 0, wx.ALIGN_CENTER)       
+        box_st2.Add(sizer_stop, 0, wx.ALIGN_CENTER)
          
         sizer_st = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u''), wx.VERTICAL)
         sizer_st.Add(sizer1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
@@ -857,18 +890,30 @@ class Detail_Disp(wx.Panel):
         self.SetSizer(sizer_st)
         self.Fit()
 
-    def OnRunENB_Data(self,event):
-        self.run_eNB_data_btn.Disable()
+    def write_param(self):
         self.u_frequency_param.Disable()
         self.d_frequency_param.Disable()
         self.prb_c.Disable()
         self.modtype.Disable()
-        
-        self.p_data = threading.Thread(target = self.Run_ENB_Data)
-        self.p_data.setDaemon(True)
-        self.p_data.start()
+        self.log_level.Disable()
 
-    def Run_ENB_Data(self):
+        #将设置好的参数写入配置文件
+        self.param_config.read("param.conf")
+
+        if "Gateway_station" not in self.param_config.sections():
+            self.param_config.add_section("Gateway_station")
+
+        self.param_config.set("Gateway_station", "s_prb_c", self.prb_c.GetValue())
+        self.param_config.set("Gateway_station", "s_modtype", self.modtype.GetValue())
+        self.param_config.set("Gateway_station", "s_u_frequency", self.u_frequency_param.GetValue())
+        self.param_config.set("Gateway_station", "s_d_frequency", self.d_frequency_param.GetValue())
+        self.param_config.set("Gateway_station", "s_log_level", self.log_level.GetValue())
+        #写入配置文件
+        param_file = open("param.conf","w")
+        self.param_config.write(param_file)
+        param_file.close()        
+
+    def setup_param(self):
         param_temp = {}
         param_temp[u'd_frequency_G'] = self.u_frequency_param.GetValue()
         param_temp[u'u_frequency_G'] = self.d_frequency_param.GetValue()
@@ -886,7 +931,21 @@ class Detail_Disp(wx.Panel):
         u'DMRS2_G': u'4', u'id_cell': 10}
 
         param.update(param_temp)
+        return param
 
+    def OnRunENB_Data(self,event):
+        self.run_eNB_data_btn.Disable()
+        self.write_param()
+
+        self.p_1 = threading.Thread(target = self.Run_ENB_Data)
+        self.p_1.setDaemon(True)
+        self.p_1.start()
+
+    def Run_ENB_Data(self):
+        param = {}
+        param = self.setup_param()
+
+        print param
         os.system('rm -rvf *.log *.dat *.test')
         # os.system('uhd_usrp_probe')
         time.sleep(2)
@@ -903,29 +962,15 @@ class Detail_Disp(wx.Panel):
 
     def OnRunENB_Audio(self,event):
         self.run_eNB_audio_btn.Disable()
-        self.u_frequency_param.Disable()
-        self.d_frequency_param.Disable()
+        self.write_param()
         
-        self.p_video = threading.Thread(target = self.Run_ENB_Audio)
-        self.p_video.setDaemon(True)
-        self.p_video.start()
+        self.p_1 = threading.Thread(target = self.Run_ENB_Audio)
+        self.p_1.setDaemon(True)
+        self.p_1.start()
 
     def Run_ENB_Audio(self):
-        param_temp = {}
-        param_temp[u'd_frequency_G'] = self.u_frequency_param.GetValue()
-        param_temp[u'u_frequency_G'] = self.d_frequency_param.GetValue()
-
-        param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
-        u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', 
-        u'mod_type_d': u'QPSK',u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log',
-        u'mod_type_u': u'QPSK',u'm_part': u'2', u'shift_G': u'1',
-        u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', u'iter_num_G': u'4',
-        u'M_part': u'2', u'route': u'192.168.200.3', u'samp_rate_G': u'4M',
-        u'Bandwidth': u'3', u'data_rules_G': u'1', u'gain_r_G': u'10',
-        u'DMRS2_G': u'4', u'id_cell': 10}
-
-        param.update(param_temp)
-
+        param = {}
+        param = self.setup_param()
         os.system('rm -rvf *.log *.dat *.test')
         # os.system('uhd_usrp_probe')
         time.sleep(2)
@@ -943,29 +988,16 @@ class Detail_Disp(wx.Panel):
     def OnRunENB_Video(self,event):
 
         self.run_eNB_video_btn.Disable()
-        self.u_frequency_param.Disable()
-        self.d_frequency_param.Disable()
+        self.write_param()
         
-        self.p_video = threading.Thread(target = self.Run_ENB_Video)
-        self.p_video.setDaemon(True)
-        self.p_video.start()
+        self.p_1 = threading.Thread(target = self.Run_ENB_Video)
+        self.p_1.setDaemon(True)
+        self.p_1.start()
 
     def Run_ENB_Video(self):
-        param_temp = {}
-        param_temp[u'd_frequency_G'] = self.u_frequency_param.GetValue()
-        param_temp[u'u_frequency_G'] = self.d_frequency_param.GetValue()
+        param = {}
+        param = self.setup_param()
 
-        param = {u'Threshold': u'0.5', u'ip': u'192.168.200.11', u'work_mod': u'1',
-        u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', u'mod_type_d': u'QPSK',
-        u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log', u'mod_type_u': u'QPSK',
-        u'm_part': u'2', u'shift_G': u'1',u'exp_code_rate_u_G': u'0.4',
-        u'gain_s_G': u'10', u'iter_num_G': u'4',u'M_part': u'2', u'route': u'192.168.200.3',
-        u'samp_rate_G': u'4M',u'Bandwidth': u'3', u'data_rules_G': u'1', u'gain_r_G': u'10',
-        u'DMRS2_G': u'4', u'id_cell': 10}
-        
-        param.update(param_temp)
-
-        print param
         os.system('rm -rvf *.log *.dat *.test')
         os.system('uhd_usrp_probe')
         self.tb = eNB_ping_15prb_one65_video(**param)
@@ -983,6 +1015,10 @@ class Detail_Disp(wx.Panel):
         while True:
             wx.CallAfter(Publisher().sendMessage, "update", self.tb.get_status())
             time.sleep(1)
+
+    def OnStopENB(self,event):
+        pass
+        # self.p_1.
 
     def updateDisplay(self, msg):
         """

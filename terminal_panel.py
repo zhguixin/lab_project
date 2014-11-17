@@ -882,15 +882,15 @@ class MainFrame(wx.Frame):
         # self.pss_pos = wx.TextCtrl(self.panel, -1, "0", style=wx.TE_READONLY)
         self.pss_pos = wx.StaticText(self.panel, -1)
 
-        # #虚拟ip地址
-        # virtual_ip = wx.StaticText(self.panel, -1, u"虚拟ip地址:")
-        # # self.virtual_ip_t = wx.TextCtrl(self.panel, -1, "192.168.200.11", style=wx.TE_READONLY)
-        # self.virtual_ip_t = wx.StaticText(self.panel, -1, '192.168.200.11')
+        #虚拟ip地址
+        virtual_ip = wx.StaticText(self.panel, -1, u"虚拟ip地址:")
+        # self.virtual_ip_t = wx.TextCtrl(self.panel, -1, "192.168.200.11", style=wx.TE_READONLY)
+        self.virtual_ip_t = wx.StaticText(self.panel, -1, '192.168.200.11')
 
-        # #选择路由
-        # select_route = wx.StaticText(self.panel, -1, u"选择路由:")
-        # # self.select_route_t = wx.TextCtrl(self.panel, -1, "192.168.200.3", style=wx.TE_READONLY)
-        # self.select_route_t = wx.StaticText(self.panel, -1, '192.168.200.3')
+        #选择路由
+        select_route = wx.StaticText(self.panel, -1, u"选择路由:")
+        # self.select_route_t = wx.TextCtrl(self.panel, -1, "192.168.200.3", style=wx.TE_READONLY)
+        self.select_route_t = wx.StaticText(self.panel, -1, '192.168.200.3')
 
         #主同步状态是否锁定
         pss_status_st = wx.StaticText(self.panel, -1, u"主同步状态:\t\t\t")
@@ -958,7 +958,7 @@ class MainFrame(wx.Frame):
         port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
 
-        self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(300,400))
+        self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(230,370))
 
         columns = ['名称','值']
 
@@ -1053,10 +1053,6 @@ class MainFrame(wx.Frame):
         sizer1.Add(self.u_frequency, 0, wx.EXPAND)
         sizer1.Add(d_frequency_st, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.d_frequency, 0, wx.EXPAND)
-        # sizer1.Add(virtual_ip, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        # sizer1.Add(self.virtual_ip_t, 0, wx.EXPAND)
-        # sizer1.Add(select_route, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        # sizer1.Add(self.select_route_t, 0, wx.EXPAND)
 
         sizer11 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer11.AddGrowableCol(1)
@@ -1068,6 +1064,12 @@ class MainFrame(wx.Frame):
         sizer11.Add(self.pbch_status, 0, wx.EXPAND)
         sizer11.Add(process_state_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer11.Add(self.process_state, 0, wx.EXPAND)
+
+        sizer_ip_route = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
+        sizer_ip_route.Add(select_route, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer_ip_route.Add(self.select_route_t, 0, wx.EXPAND)
+        sizer_ip_route.Add(virtual_ip, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer_ip_route.Add(self.virtual_ip_t, 0, wx.EXPAND)
 
         sizer111 = wx.FlexGridSizer(cols=4, hgap=10, vgap=10)
         sizer111.AddGrowableCol(1)
@@ -1094,6 +1096,7 @@ class MainFrame(wx.Frame):
         sizer2.Add(sizer11, 0, wx.EXPAND | wx.ALL, 10)
         sizer2.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,10)
         sizer2.Add(sizer111, 0, wx.EXPAND | wx.ALL, 10)
+        sizer2.Add(sizer_ip_route, 0, wx.EXPAND | wx.ALL, 10)
         sizer2.Add(sizer_detail, 0, wx.EXPAND | wx.ALL, 10)
 
         sizer3 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
