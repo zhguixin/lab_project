@@ -58,24 +58,16 @@ class Terminal(wx.Panel):
         except: s_threshold = '0.85'
 
         #上行中心频率
-        # u_frequency_list = ['20','800']
+        u_frequency_list = ['20','800','900','1000','1200']
         u_frequency_st = wx.StaticText(self, -1, u"上行中心频率(MHz):")
-        # self.u_frequency = wx.SpinCtrl(self, -1, "", (-1, -1))
-        # self.u_frequency.SetRange(1980,2010)
-        # self.u_frequency.SetValue(s_u_frequency)
-        # self.u_frequency = wx.ComboBox(self, -1, s_u_frequency, wx.DefaultPosition,
-        #  wx.DefaultSize, u_frequency_list, 0)
-        self.u_frequency = wx.TextCtrl(self,-1,s_u_frequency)
+        self.u_frequency = wx.ComboBox(self, -1, s_u_frequency, wx.DefaultPosition,
+         wx.DefaultSize, u_frequency_list, 0)
 
         #下行中心频率
-        # d_frequency_list = ['40','900']
+        d_frequency_list = ['40','900','1000','1200']
         d_frequency_st = wx.StaticText(self, -1, u"下行中心频率(MHz):")
-        # self.d_frequency = wx.SpinCtrl(self, -1, "", (-1, -1))
-        # self.d_frequency.SetRange(2170,2200)
-        # self.d_frequency.SetValue(s_d_frequency)
-        # self.d_frequency = wx.ComboBox(self, -1, s_d_frequency, wx.DefaultPosition,
-        #  wx.DefaultSize, d_frequency_list, 0)
-        self.d_frequency = wx.TextCtrl(self,-1,s_d_frequency)
+        self.d_frequency = wx.ComboBox(self, -1, s_d_frequency, wx.DefaultPosition,
+         wx.DefaultSize, d_frequency_list, 0)
 
         # m_part优化算法插零数
         m_part_list = ['1','2','4']
@@ -784,17 +776,17 @@ class Gateway_station(wx.Panel):
         self.param_config = ConfigParser.ConfigParser()
         self.param_config.read("param.conf")
 
-        #创建面板
+        # 创建面板
         self.CreatePanel()
 
     def CreatePanel(self):
 
-        #参数从配置文件读取，如果配置文件不存在，则使用默认值
+        # 参数从配置文件读取，如果配置文件不存在，则使用默认值
         try: s_prb_c = self.param_config.get("Gateway_station", "s_prb_c")
         except: s_prb_c = '1.4'
 
         try: s_id_sc = self.param_config.getint("Gateway_station", "s_id_sc")
-        except: s_id_sc = 5
+        except: s_id_sc = 10
 
         try: s_modtype_u = self.param_config.get("Gateway_station", "s_modtype_u")
         except: s_modtype_u = 'QPSK'
@@ -808,18 +800,18 @@ class Gateway_station(wx.Panel):
         try: s_d_frequency = self.param_config.get("Gateway_station", "s_d_frequency")
         except: s_d_frequency = '900'
 
-        #链路带宽
+        # 链路带宽
         PRBList = ['1.4','3']
         prb_statictext = wx.StaticText(self, -1, u"链路带宽(MHz):")
         self.prb_c = wx.ComboBox(self, -1, s_prb_c, wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
 
-        #小区ID
+        # 小区ID
         id_statictext = wx.StaticText(self, -1, u"小区ID:")
         self.id_sc = wx.SpinCtrl(self, -1, "", (-1, -1))
         self.id_sc.SetRange(0,503)
         self.id_sc.SetValue(s_id_sc)
 
-        #调制方式
+        # 调制方式
         ModtypeList = ['QPSK','16QAM']
         modtype_st_u = wx.StaticText(self, -1, u"上行调制方式:")
         self.modtype_u = wx.ComboBox(self, -1, s_modtype_u, wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
@@ -827,34 +819,26 @@ class Gateway_station(wx.Panel):
         modtype_st_d = wx.StaticText(self, -1, u"下行调制方式:")
         self.modtype_d = wx.ComboBox(self, -1, s_modtype_d, wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
 
-        #上行中心频率
-        # u_frequency_list = ['20','800']
+        # 上行中心频率
+        u_frequency_list = ['20','800','900','1000','1200']
         u_frequency_st = wx.StaticText(self, -1, u"上行中心频率(MHz):")
-        # self.u_frequency = wx.SpinCtrl(self, -1, "", (-1, -1))
-        # self.u_frequency.SetRange(1980,2010)
-        # self.u_frequency.SetValue(s_u_frequency)
-        # self.u_frequency = wx.ComboBox(self, -1, s_u_frequency, wx.DefaultPosition,
-        #  wx.DefaultSize, u_frequency_list, 0)
-        self.u_frequency = wx.TextCtrl(self,-1,s_u_frequency)
+        self.u_frequency = wx.ComboBox(self, -1, s_u_frequency, wx.DefaultPosition,
+         wx.DefaultSize, u_frequency_list, 0)
 
-        #下行中心频率
-        # d_frequency_list = ['40','900']
+        # 下行中心频率
+        d_frequency_list = ['40','900','1000','1200']
         d_frequency_st = wx.StaticText(self, -1, u"下行中心频率(MHz):")
-        # self.d_frequency = wx.SpinCtrl(self, -1, "", (-1, -1))
-        # self.d_frequency.SetRange(1980,2010)
-        # self.d_frequency.SetValue(s_d_frequency)
-        # self.d_frequency = wx.ComboBox(self, -1, s_d_frequency, wx.DefaultPosition,
-        #  wx.DefaultSize, d_frequency_list, 0)
-        self.d_frequency = wx.TextCtrl(self,-1,s_d_frequency)   
+        self.d_frequency = wx.ComboBox(self, -1, s_d_frequency, wx.DefaultPosition,
+         wx.DefaultSize, d_frequency_list, 0)
 
-        #高级按钮
+        # 高级按钮
         self.senior_button = wx.Button(self, -1, u"高级")
         self.senior_button.SetBackgroundColour('black')
         self.senior_button.SetForegroundColour('white')
         self.Bind(wx.EVT_BUTTON,self.Senior,self.senior_button)
 
         #######开始布局############
-        #参数窗口
+        # 参数窗口
         sizer2 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer2.AddGrowableCol(1)
         sizer2.Add(prb_statictext, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
@@ -870,28 +854,27 @@ class Gateway_station(wx.Panel):
         sizer2.Add(d_frequency_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer2.Add(self.d_frequency, 0, wx.EXPAND)
 
-        #高级按钮
+        # 高级按钮
         sizer3 = wx.BoxSizer(wx.HORIZONTAL)
         sizer3.Add((20,20), 1)
         sizer3.Add(self.senior_button, 0, wx.ALIGN_RIGHT)
 
-        #添加参数子块，带边框的模块布局，包含参数和高级按钮
+        # 添加参数子块，带边框的模块布局，包含参数和高级按钮
         sizer1 = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'重要参数'), wx.VERTICAL)
         sizer1.Add(sizer2, 0, wx.EXPAND | wx.ALL, 15)
         # sizer1.Add(sizer3, 0, wx.EXPAND | wx.ALL, 10)
 
-        #box1垂直布局,box1即左半界面
+        # box1垂直布局,box1即左半界面
         box1 = wx.BoxSizer(wx.VERTICAL)
         box1.Add(sizer1, 0, wx.EXPAND | wx.ALL, 10)
         box1.Add(sizer3, 0, wx.EXPAND | wx.ALL, 5)
 
-        #自动调整界面尺寸
+        # 自动调整界面尺寸
         self.SetSizer(box1)
         box1.Fit(self)
         box1.SetSizeHints(self)
 
     def Senior(self,event):
-        # self.seniordialog = SeniorDialog_Gateway(None)
         self.seniordialog = SeniorDialog_Gateway(None)
         self.seniordialog.ok_button.Bind(wx.EVT_BUTTON, self.OnOk)
         self.seniordialog.Bind(wx.EVT_CLOSE, self.OnCloseWindow_SDG)
@@ -904,7 +887,7 @@ class Gateway_station(wx.Panel):
         self.seniordialog.Destroy()
 
     def OnOk(self,event):
-        #将设置好的参数写入配置文件
+        # 将设置好的参数写入配置文件
         self.param_config.read("param.conf")
 
         if "Gateway_station" not in self.param_config.sections():
@@ -952,11 +935,11 @@ class SeniorDialog_Gateway(wx.Frame):
         self.param_config = ConfigParser.ConfigParser()
         self.param_config.read("param.conf")
 
-        #创建面板
+        # 创建面板
         self.SeniorPanel()
 
     def SeniorPanel(self):
-        #参数从配置文件读取，如果配置文件不存在，则使用默认值
+        # 参数从配置文件读取，如果配置文件不存在，则使用默认值
         try: s_data_rules = self.param_config.get("Gateway_station", "s_data_rules")
         except: s_data_rules = '规则递增'
 
@@ -1361,8 +1344,8 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
 
         #创建状态栏
-        # self.panel.Bind(wx.EVT_MOTION, self.OnDataMotion)  
-        self.statusbar = self.CreateStatusBar()  
+        # self.panel.Bind(wx.EVT_MOTION, self.OnDataMotion)
+        self.statusbar = self.CreateStatusBar()
         #将状态栏分割为2个区域,比例为1:1
         self.statusbar.SetFieldsCount(2)  
         self.statusbar.SetStatusWidths([-1, -1])
@@ -1496,8 +1479,8 @@ class MainFrame(wx.Frame):
     # def OnDataMotion(self, event):  
           
     #     #设置状态栏1内容  
-    #     # self.statusbar.SetStatusText(u"鼠标位置：" + str(event.GetPositionTuple()), 0)
-    #     # self.statusbar.SetStatusText(u"误码率：" + str(), 0)  
+        # self.statusbar.SetStatusText(u"鼠标位置：" + str(event.GetPositionTuple()), 0)
+        # self.statusbar.SetStatusText(u"误码率：" + str(), 0)
     #     self.statusbar.SetStatusText(u"误码率：", 0)  
           
     #     #设置状态栏2内容
@@ -1506,7 +1489,7 @@ class MainFrame(wx.Frame):
     #     #设置状态栏3内容  
     #     self.statusbar.SetStatusText(u"信息速率：", 2)  
                
-    #     event.Skip() 
+    #     event.Skip()
 
     def updateDisplay(self, msg): 
         """
