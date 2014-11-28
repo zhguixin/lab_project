@@ -115,20 +115,13 @@ class MainFrame(wx.Frame):
             self.process_state.state_red()
         self.id_cell_t.SetLabel(str(dict_status['cell_id']))
         self.rnti_t.SetLabel(str(dict_status['rnti']))
-        self.virtual_ip_t.SetLabel(str(dict_status['ip']))
-        self.select_route_t.SetLabel(str(dict_status['route']))
         self.bandwidth_t.SetLabel(str(dict_status['prbl']))
         self.cfo.SetLabel(str(dict_status['cfo']))
         self.fte.SetLabel(str(dict_status['fte']))
         self.pss_pos.SetLabel(str(dict_status['pss_pos']))
 
-        self.u_frequency.SetLabel(str(dict_status['u_freq']))
-        self.d_frequency.SetLabel(str(dict_status['d_freq']))
-
-        self.mac_pdu_value.SetLabel(str(dict_status['pdu_sum']))
-        self.frame_error_rate_value.SetLabel(str(dict_status['fer']))
-        self.fn.SetLabel(str(dict_status['fn']))
-        self.sfn.SetLabel(str(dict_status['sfn']))
+        # self.u_frequency.SetLabel(str(dict_status['u_freq']))
+        # self.d_frequency.SetLabel(str(dict_status['d_freq']))
 
     def create_list(self):
         self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(230,370))
@@ -209,11 +202,11 @@ class MainFrame(wx.Frame):
         pss_pos_st = wx.StaticText(self.panel, -1, u"峰值位置:")
         self.pss_pos = wx.StaticText(self.panel, -1)
 
-        # 上下行中心频率
-        u_frequency_st = wx.StaticText(self.panel, -1, u"上行中心频率(MHz):")
-        self.u_frequency = wx.StaticText(self.panel, -1)
-        d_frequency_st = wx.StaticText(self.panel, -1, u"下行中心频率(MHz):")
-        self.d_frequency = wx.StaticText(self.panel, -1)
+        # # 上下行中心频率
+        # u_frequency_st = wx.StaticText(self.panel, -1, u"上行中心频率(MHz):")
+        # self.u_frequency = wx.StaticText(self.panel, -1)
+        # d_frequency_st = wx.StaticText(self.panel, -1, u"下行中心频率(MHz):")
+        # self.d_frequency = wx.StaticText(self.panel, -1)
 
         #实时载波频率偏差值
         cfo_st = wx.StaticText(self.panel, -1, u"实时载波频率偏差:")
@@ -222,14 +215,6 @@ class MainFrame(wx.Frame):
         #实时细定时误差
         fte_st = wx.StaticText(self.panel, -1, u"实时细定时误差:")
         self.fte = wx.StaticText(self.panel, -1)
-
-        #选择路由
-        select_route = wx.StaticText(self.panel, -1, u"信关站IP:")
-        self.select_route_t = wx.StaticText(self.panel, -1)
-
-        #虚拟ip地址
-        virtual_ip = wx.StaticText(self.panel, -1, u"当前UE的IP:")
-        self.virtual_ip_t = wx.StaticText(self.panel, -1)
 
         #主同步状态是否锁定
         pss_status_st = wx.StaticText(self.panel, -1, u"主同步状态:\t\t\t")
@@ -246,23 +231,6 @@ class MainFrame(wx.Frame):
         #当前处理状态
         process_state_st = wx.StaticText(self.panel, -1, u"处理状态(捕获／跟踪):\t\t\t")
         self.process_state = PanelOne(self.panel)
-
-        # MAC_PDU个数、误帧率、帧号、子帧号
-        # status_bar_lable = "MAC_PDU个数:\t\t\t误帧率:\t"
-        # self.status_bar = wx.TextCtrl(self.panel, -1, status_bar_lable, style=wx.TE_READONLY)
-        
-        # 获取下行链路接收的mac_pdu的个数
-        mac_pdu = wx.StaticText(self.panel, -1, u"mac_pdu的个数:")
-        self.mac_pdu_value = wx.StaticText(self.panel, -1)
-
-        frame_error_rate = wx.StaticText(self.panel, -1, u"误帧率:")
-        self.frame_error_rate_value = wx.StaticText(self.panel, -1)
-
-        fn_st = wx.StaticText(self.panel, -1, u"帧号:")
-        self.fn = wx.StaticText(self.panel, -1)
-
-        sfn_st = wx.StaticText(self.panel, -1, u"子帧号:")
-        self.sfn = wx.StaticText(self.panel, -1)
 
         #连接按钮
         self.connect_button = wx.Button(self.panel, -1, u"连接")
@@ -363,10 +331,10 @@ class MainFrame(wx.Frame):
         sizer1.Add(self.fte, 0, wx.EXPAND)
         sizer1.Add(cfo_st, 0, wx.ALIGN_CENTER_VERTICAL)
         sizer1.Add(self.cfo, 0, wx.EXPAND)
-        sizer1.Add(u_frequency_st, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.u_frequency, 0, wx.EXPAND)
-        sizer1.Add(d_frequency_st, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer1.Add(self.d_frequency, 0, wx.EXPAND)
+        # sizer1.Add(u_frequency_st, 0, wx.ALIGN_CENTER_VERTICAL)
+        # sizer1.Add(self.u_frequency, 0, wx.EXPAND)
+        # sizer1.Add(d_frequency_st, 0, wx.ALIGN_CENTER_VERTICAL)
+        # sizer1.Add(self.d_frequency, 0, wx.EXPAND)
 
         sizer11 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer11.AddGrowableCol(1)
@@ -379,32 +347,11 @@ class MainFrame(wx.Frame):
         sizer11.Add(process_state_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer11.Add(self.process_state, 0, wx.EXPAND)
 
-        sizer_ip_route = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
-        sizer_ip_route.Add(select_route, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer_ip_route.Add(self.select_route_t, 0, wx.EXPAND)
-        sizer_ip_route.Add(virtual_ip, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer_ip_route.Add(self.virtual_ip_t, 0, wx.EXPAND)
-
-        sizer111 = wx.FlexGridSizer(cols=4, hgap=10, vgap=10)
-        sizer111.AddGrowableCol(1)
-        sizer111.AddGrowableCol(3)
-        sizer111.Add(frame_error_rate, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer111.Add(self.frame_error_rate_value, 0, wx.EXPAND)
-        sizer111.Add(mac_pdu, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer111.Add(self.mac_pdu_value, 0, wx.EXPAND)
-        sizer111.Add(fn_st, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer111.Add(self.fn, 0, wx.EXPAND)
-        sizer111.Add(sfn_st, 0, wx.ALIGN_CENTER_VERTICAL)
-        sizer111.Add(self.sfn, 0, wx.EXPAND)
-
         #高级按钮
         sizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'状态显示'), wx.VERTICAL)
         sizer2.Add(sizer1, 0, wx.EXPAND | wx.ALL | wx.TOP, 10)
         sizer2.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,10)
         sizer2.Add(sizer11, 0, wx.EXPAND | wx.ALL, 10)
-        sizer2.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,10)
-        sizer2.Add(sizer111, 0, wx.EXPAND | wx.ALL, 10)
-        sizer2.Add(sizer_ip_route, 0, wx.EXPAND | wx.ALL, 10)
 
         sizer3 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer3.AddGrowableCol(1)
@@ -908,8 +855,8 @@ class MainFrame(wx.Frame):
         self.cfo.SetLabel('0')
         self.fte.SetLabel('0')
         self.pss_pos.SetLabel('0')
-        self.virtual_ip_t.SetLabel('')
-        self.select_route_t.SetLabel('')
+        # self.virtual_ip_t.SetLabel('')
+        # self.select_route_t.SetLabel('')
         self.id_cell_t.SetLabel('0')
         self.rnti_t.SetLabel('0')
         self.bandwidth_t.SetLabel('0')
