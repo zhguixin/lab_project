@@ -30,8 +30,8 @@ import traceback,time
 import ConfigParser
 from wx.lib.pubsub import Publisher 
 
-# from MatplotPanel import MatplotPanel
-from StatusPanel import StatusPanel
+from MatplotPanel import MatplotPanel
+# from StatusPanel import StatusPanel
 
 from ue61_ping_15prb import ue61_ping_15prb as run_ue_packet
 # from ue65_ping_15prb import ue65_ping_15prb as run_ue_packet
@@ -70,9 +70,10 @@ class MainFrame(wx.Frame):
 
         self.sp = wx.SplitterWindow(self)
         self.panel = wx.Panel(self.sp, style=wx.SP_3D| wx.TAB_TRAVERSAL)
-        # self.p1 = MatplotPanel(self.sp)
-        self.p1 = StatusPanel(self.sp)
-        self.sp.SplitVertically(self.panel,self.p1,350)
+        self.p1 = MatplotPanel(self.sp)
+        # self.p1 = StatusPanel(self.sp)
+        # self.sp.SplitVertically(self.panel,self.p1,350)
+        self.sp.SplitVertically(self.panel,self.p1,700)
 
         self.panel.SetBackgroundColour("white")
 
@@ -124,45 +125,76 @@ class MainFrame(wx.Frame):
         # self.d_frequency.SetLabel(str(dict_status['d_freq']))
 
     def create_list(self):
-        self.list = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(230,370))
+        self.list_rx = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(320,450))
+        self.list_tx = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(320,350))
 
         columns = ['名称','值']
 
-        rows = [('RX CRC错误总包数','0'),
+        rows_tx = [
+        ('TX 发送的SR数目','0'),
+        ('TX 预补偿归一化频偏','0'),
+        ('',''),
+        ('TX 高层==>RLC总包数','0'),
+        ('TX 高层==>RLC字节数','0'),
+        ('TX 高层==>RLC字节速率','0'),
+        ('',''),
+        ('TX RLC==>MAC总包数','0'),
+        ('TX RLC==>MAC字节数','0'),
+        ('TX RLC==>MAC字节速率','0'),
+        ('',''),
+        ('UE端丢弃调度数目 ','0'),
+        ('UE端总调度的数目 ','0'),
+        ]
+
+        rows_rx = [
+        ('sync递交子帧数目 ','0'),
+        ('下行DEMUX子帧数目 ','0'),
+        ('',''),
+        ('RX CRC错误总包数','0'),
         ('RX CRC错误字节数','0'),
         ('RX CRC正确总包数','0'),
         ('RX CRC正确字节数','0'),
-        ('','0'),
+        ('RX CRC正确速率 ','0'),
+        ('',''),
         ('MAC==>RLC总包数','0'),
         ('MAC==>RLC字节数','0'),
+        ('MAC==>RLC字节速率','0'),
+        ('',''),
         ('RLC==>高层总包数','0'),
         ('RLC==>高层字节数','0'),
-        ('RX 丢弃调度数目','0'),
-        ('RX 总调度的数目','0'),
-        ('TX 发送的SR数目','0'),
-        ('TX 高层==>RLC总包数','0'),
-        ('TX 高层==>RLC字节数','0'),
-        ('TX RLC==>MAC总包数','0'),
-        ('TX RLC==>MAC字节数','0'),
+        ('RLC==>高层字节速率','0'),
+        # ('',''),
+        # ('RX 丢弃调度数目','0'),
+        # ('RX 总调度的数目','0'),
+        ('',''),
+        ('统计数据间隔为 ','0'),
         ] 
 
         # Add some columns
         for col, text in enumerate(columns):
-            self.list.InsertColumn(col, text)
+            self.list_tx.InsertColumn(col, text)
+            self.list_rx.InsertColumn(col, text)
 
         # add the rows
-        for item in rows:
-            index = self.list.InsertStringItem(sys.maxint, item[0])
+        for item in rows_tx:
+            index = self.list_tx.InsertStringItem(sys.maxint, item[0])
             for col, text in enumerate(item[1:]):
-                self.list.SetStringItem(index, col+1, text)
+                self.list_tx.SetStringItem(index, col+1, text)
+
+        for item in rows_rx:
+            index = self.list_rx.InsertStringItem(sys.maxint, item[0])
+            for col, text in enumerate(item[1:]):
+                self.list_rx.SetStringItem(index, col+1, text)
 
         # set the width of the columns in various ways
-        self.list.SetColumnWidth(0, 190)
-        # self.list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
-        self.list.SetColumnWidth(1, 120)
+        self.list_tx.SetColumnWidth(0, 200)
+        self.list_tx.SetColumnWidth(1, 120)
+
+        self.list_rx.SetColumnWidth(0, 200)
+        self.list_rx.SetColumnWidth(1, 120)
 
     def createframe(self):
-        # self.create_list()
+        self.create_list()
 
         # 参数从配置文件读取，如果配置文件不存在，则使用默认值
         try: s_prb_c = self.terminal_config.get("Terminal", "s_prb_c")
@@ -424,8 +456,20 @@ class MainFrame(wx.Frame):
         box4.Add(box1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
         box4.Add(box3,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 
+        box_list = wx.BoxSizer(wx.VERTICAL)
+        box_list.Add(self.list_rx, 0, wx.EXPAND|wx.TOP)
+        box_list.Add(self.list_tx, 0, wx.EXPAND|wx.TOP)
+
+        sizer_list = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'详细状态显示'), wx.VERTICAL)
+        sizer_list.Add(box_list, 0, wx.EXPAND | wx.ALL, 10)
+
+        box_all = wx.BoxSizer(wx.HORIZONTAL)
+        box_all.Add(box4,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
+        box_all.Add(sizer_list,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
+
         #自动调整界面尺寸
-        self.panel.SetSizer(box4)
+        # self.panel.SetSizer(box4)
+        self.panel.SetSizer(box_all)
 
     def status_process(self):
         status = {}
