@@ -72,7 +72,7 @@ class MainFrame(wx.Frame):
         self.panel = wx.Panel(self.sp, style=wx.SP_3D| wx.TAB_TRAVERSAL)
         # self.p1 = MatplotPanel(self.sp)
         self.p1 = StatusPanel(self.sp)
-        self.sp.SplitVertically(self.panel,self.p1,700)
+        self.sp.SplitVertically(self.panel,self.p1,350)
 
         self.panel.SetBackgroundColour("white")
 
@@ -316,7 +316,7 @@ class MainFrame(wx.Frame):
         self.stop_ue_btn.Disable()
 
         ###########开始布局############
-        sizer1 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
+        sizer1 = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
         sizer1.AddGrowableCol(1)
         sizer1.AddGrowableCol(3)
         sizer1.Add(id_cell, 0, wx.ALIGN_CENTER_VERTICAL)
@@ -336,7 +336,7 @@ class MainFrame(wx.Frame):
         # sizer1.Add(d_frequency_st, 0, wx.ALIGN_CENTER_VERTICAL)
         # sizer1.Add(self.d_frequency, 0, wx.EXPAND)
 
-        sizer11 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
+        sizer11 = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
         sizer11.AddGrowableCol(1)
         sizer11.Add(pss_status_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer11.Add(self.pss_status, 0, wx.EXPAND)
@@ -353,30 +353,11 @@ class MainFrame(wx.Frame):
         sizer2.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,10)
         sizer2.Add(sizer11, 0, wx.EXPAND | wx.ALL, 10)
 
-        sizer3 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
-        sizer3.AddGrowableCol(1)
-        sizer3.Add(ip_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer3.Add(self.IPText, 3, wx.EXPAND)
-        sizer3.Add(port_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer3.Add(self.PortText, 1, wx.EXPAND)
-
-        #连接按钮
-        sizer4 = wx.BoxSizer(wx.HORIZONTAL)
-        sizer4.Add((20,20), 1)
-        sizer4.Add(self.connect_button, 0, wx.ALIGN_RIGHT)
-
-        sizer5 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'连接服务器'), wx.VERTICAL)
-        sizer5.Add(sizer3, 0, wx.EXPAND | wx.ALL, 10)
-        sizer5.Add(sizer4, 0, wx.EXPAND | wx.ALL, 10)
 
         box1 = wx.BoxSizer(wx.VERTICAL)
         box1.Add(sizer2,0,wx.EXPAND | wx.ALL|wx.TOP, 0)
-        box1.Add((20,20), 0)
-        box1.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
-        box1.Add((20,20), 0)
-        box1.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 
-        sizer_param = wx.FlexGridSizer(cols=2, hgap=5, vgap=10)
+        sizer_param = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
         sizer_param.AddGrowableCol(1)
         sizer_param.Add(u_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.u_frequency_param, 0, wx.EXPAND)
@@ -411,22 +392,35 @@ class MainFrame(wx.Frame):
         ctrl_sizer2.Add(self.stop_ue_btn,0,wx.EXPAND | wx.ALL)
 
         box_st2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行UE测试'), wx.VERTICAL)
-        box_st2.Add((10,10), 0)
         box_st2.Add(sizer_work_mod, 0, wx.ALIGN_CENTER)
         box_st2.Add((10,10), 0)
         box_st2.Add(ctrl_sizer2, 0, wx.ALIGN_CENTER)
         box_st2.Add((10,10), 0)
 
+        sizer3 = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
+        sizer3.AddGrowableCol(1)
+        sizer3.Add(ip_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer3.Add(self.IPText, 1, wx.EXPAND)
+        sizer3.Add(port_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer3.Add(self.PortText, 1, wx.EXPAND)
+
+        #连接按钮
+        sizer4 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer4.Add((10,10), 1)
+        sizer4.Add(self.connect_button, 0, wx.ALIGN_RIGHT)
+
+        sizer5 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'远程连接服务器'), wx.VERTICAL)
+        sizer5.Add(sizer3, 0, wx.EXPAND | wx.ALL, 10)
+        sizer5.Add(sizer4, 0, wx.EXPAND | wx.ALL, 10)
+
         box3 = wx.BoxSizer(wx.VERTICAL)
-        box3.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
-        box3.Add((10,10), 0)
         box3.Add(box_st_param,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
         box3.Add((10,10), 0)
-        box3.Add(wx.StaticLine(self.panel), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
-        box3.Add((10,10), 0)
         box3.Add(box_st2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
+        box3.Add((10,10), 0)
+        box3.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 
-        box4 = wx.BoxSizer(wx.HORIZONTAL)
+        box4 = wx.BoxSizer(wx.VERTICAL)
         box4.Add(box1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
         box4.Add(box3,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 

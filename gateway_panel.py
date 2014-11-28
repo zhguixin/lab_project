@@ -19,7 +19,10 @@ from wx.lib.pubsub import Publisher
 import numpy as np
 
 from Detail_Disp import Detail_Disp
-from Detail_Dialog import Detail_Dialog
+
+#设置系统默认编码方式，不用下面两句，中文会乱码
+reload(sys)  
+sys.setdefaultencoding("utf-8")
 
 class PanelOne(wx.Panel):
     def __init__(self, parent):
@@ -188,25 +191,12 @@ class MainFrame(wx.Frame):
 
         self.create_list_ctrl()
 
-        #详细显示按钮
-        self.detail_button = wx.Button(self.panel, -1, u"详细显示")
-        self.detail_button.SetBackgroundColour('black')
-        self.detail_button.SetForegroundColour('white')
-        self.Bind(wx.EVT_BUTTON,self.Detail,self.detail_button)
-        self.detail_button.Disable()
-
         sizer_list = wx.BoxSizer(wx.HORIZONTAL)
         sizer_list.Add(self.list_rx, 0, wx.EXPAND|wx.TOP)
         sizer_list.Add(self.list_tx, 0, wx.EXPAND|wx.TOP)
 
-        #详细显示按钮
-        sizer_detail = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_detail.Add((10,10), 1)
-        sizer_detail.Add(self.detail_button, 0, wx.ALIGN_RIGHT)
-
         sizer2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'状态显示'), wx.VERTICAL)
         sizer2.Add(sizer_list, 0, wx.EXPAND | wx.ALL, 10)
-        sizer2.Add(sizer_detail, 0, wx.EXPAND | wx.ALL, 10)
 
         box1 = wx.BoxSizer(wx.VERTICAL)
         box1.Add(sizer2,0,wx.EXPAND | wx.ALL, 25)
@@ -215,17 +205,8 @@ class MainFrame(wx.Frame):
         # 自动调整界面尺寸
         self.panel.SetSizer(box1)
 
-    def Detail(self,event):
-        self.detail_dlg = Detail_Dialog(None)
-        self.detail_dlg.Bind(wx.EVT_CLOSE, self.OnCloseWindowDetail)
-        self.detail_dlg.Show()
-        self.detail_button.Disable()
-
-    def OnCloseWindowDetail(self,event):
-        self.detail_button.Enable()
-        self.detail_dlg.Destroy()
-
     def OnCloseWindow(self, event):
+        self.Destroy()
         # try:
         #     self.status['gateway']="false"
         #     data_status = json.dumps(self.status)
@@ -233,12 +214,6 @@ class MainFrame(wx.Frame):
         #     self.client.close() 
         #     self.Destroy()
         # except:
-        try:
-            self.Destroy()
-            if isinstance(self.detail_dlg,Detail_Dialog) == True:
-                self.detail_dlg.Destroy()
-        except:
-            self.Destroy()
 
 class MyApp(wx.App):
     def OnInit(self):
