@@ -29,6 +29,10 @@ from Audio_eNB import Audio_eNB as run_eNB_audio
 # from eNB_ping_15prb_one65_video import *
 # from eNB_ping_15prb_one65_audio import *
 
+#设置系统默认编码方式，不用下面两句，中文会乱码
+reload(sys)  
+sys.setdefaultencoding("utf-8")
+
 class Detail_Disp(wx.Panel):
 
     def __init__(self,parent):
@@ -53,15 +57,15 @@ class Detail_Disp(wx.Panel):
         except: s_d_frequency = '900'    
         try: s_log_level = self.param_config.get("Gateway_station", "s_log_level")
         except: s_log_level = 'debug'
-        try: s_log_type = int(self.param_config.get("Gateway_station", "s_log_type"))
-        except: s_log_type = 0
+        try: s_log_type = self.param_config.get("Gateway_station", "s_log_type")
+        except: s_log_type = '内存日志'
         try: s_ip = self.param_config.get("Gateway_station", "s_ip")
         except: s_ip = '192.168.200.3'
         try: s_route_1 = self.param_config.get("Gateway_station", "s_route_1")
         except: s_route_1 = '192.168.200.11'
         try: s_route_2 = self.param_config.get("Gateway_station", "s_route_2")
         except: s_route_2 = '192.168.200.12'
-        try: s_work_mod = int(self.param_config.get("Gateway_station", "s_work_mod"))
+        try: s_work_mod = self.param_config.get("Gateway_station", "s_work_mod")
         except: s_work_mod = 0
         try: s_ip_remote = self.param_config.get("Address", "s_ip_remote")
         except: s_ip_remote = '192.168.139.180'
@@ -94,9 +98,9 @@ class Detail_Disp(wx.Panel):
         modtype_st = wx.StaticText(self, -1, u"调制方式:")
         self.modtype = wx.ComboBox(self, -1, s_modtype, wx.DefaultPosition, wx.DefaultSize, ModtypeList, 0)
 
-        log_type_list = ["文件日志","内存日志"]
+        log_type_list = [u"文件日志",u"内存日志"]
         log_type_st = wx.StaticText(self, -1, u"日志类型:")
-        self.log_type = wx.ComboBox(self, -1, log_type_list[s_log_type],
+        self.log_type = wx.ComboBox(self, -1, s_log_type,
          wx.DefaultPosition, wx.DefaultSize, log_type_list, 0)      
 
         log_level_list = ["debug","info" ,"notice" ,"warn" ,"error"]
@@ -110,25 +114,17 @@ class Detail_Disp(wx.Panel):
          wx.DefaultSize, ip_list, 0)
 
         route_list = ["192.168.200.11", "192.168.200.12"]
-        route_st_1 = wx.StaticText(self, -1, u"配置Route:")
+        route_st_1 = wx.StaticText(self, -1, u"配置UE1 Route:")
         self.route_1 = wx.ComboBox(self, -1, s_route_1, wx.DefaultPosition,
          wx.DefaultSize, route_list, 0)
-        route_st_2 = wx.StaticText(self, -1, u"配置Route:")
+        route_st_2 = wx.StaticText(self, -1, u"配置UE2 Route:")
         self.route_2 = wx.ComboBox(self, -1, s_route_2, wx.DefaultPosition,
          wx.DefaultSize, route_list, 0)
 
         work_mod_list = [u"分组业务演示",u"音频实时交互演示"]
         work_mod_st = wx.StaticText(self, -1, u"演示模式选择:")
-        self.work_mod = wx.ComboBox(self, -1, work_mod_list[s_work_mod], wx.DefaultPosition,
+        self.work_mod = wx.ComboBox(self, -1, s_work_mod, wx.DefaultPosition,
          wx.DefaultSize, work_mod_list, 0)
-
-        self.run_eNB_data_btn = wx.Button(self, -1, u"分组业务演示")
-        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Packet, self.run_eNB_data_btn)
-
-        self.run_eNB_audio_btn = wx.Button(self, -1, u"音频实时交互演示")
-        # self.run_eNB_audio_btn.SetBackgroundColour('black')
-        # self.run_eNB_audio_btn.SetForegroundColour('white')
-        self.Bind(wx.EVT_BUTTON, self.OnRunENB_Audio, self.run_eNB_audio_btn)
 
         self.start_eNB_btn = wx.Button(self, -1, u"启动运行")
         # self.start_eNB_btn.SetBackgroundColour('black')
@@ -186,11 +182,6 @@ class Detail_Disp(wx.Panel):
         sizer_work_mod.Add(work_mod_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_work_mod.Add(self.work_mod, 0, wx.EXPAND)
 
-        sizer_run = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_run.Add(self.run_eNB_data_btn, 0, wx.ALIGN_CENTER)
-        sizer_run.Add((20,20), 0)
-        sizer_run.Add(self.run_eNB_audio_btn, 0, wx.ALIGN_CENTER)
-
         sizer_stop = wx.BoxSizer(wx.HORIZONTAL)
         sizer_stop.Add(self.start_eNB_btn, 0, wx.ALIGN_CENTER)  
         sizer_stop.Add((20,20), 0)
@@ -198,11 +189,11 @@ class Detail_Disp(wx.Panel):
         sizer_stop.Add((20,20), 0)
 
         box_st2 = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u'本地运行eNB测试'), wx.VERTICAL)   
+        box_st2.Add((10,10), 0)
         box_st2.Add(sizer_work_mod, 0, wx.ALIGN_CENTER)
         box_st2.Add((10,10), 0)
-        box_st2.Add(sizer_run, 0, wx.ALIGN_CENTER)
-        box_st2.Add((10,10), 0)
         box_st2.Add(sizer_stop, 0, wx.ALIGN_CENTER)
+        box_st2.Add((10,10), 0)
         
         sizer3 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer3.AddGrowableCol(1)
@@ -229,156 +220,6 @@ class Detail_Disp(wx.Panel):
 
         self.SetSizer(sizer_st)
         self.Fit()   
-
-    def write_param(self):
-        self.u_frequency_param.Disable()
-        self.d_frequency_param.Disable()
-        self.prb_c.Disable()
-        self.modtype.Disable()
-        self.id_sc.Disable()
-        self.log_level.Disable()
-        self.log_type.Disable()
-        self.stop_eNB_btn.Enable()
-        self.ip.Disable()
-        self.route_1.Disable()
-        self.route_2.Disable()
-
-        #将设置好的参数写入配置文件
-        self.param_config.read("param.conf")
-
-        if "Gateway_station" not in self.param_config.sections():
-            self.param_config.add_section("Gateway_station")
-
-        self.param_config.set("Gateway_station", "s_prb_c", self.prb_c.GetValue())
-        self.param_config.set("Gateway_station", "s_id_sc", self.id_sc.GetValue())
-        self.param_config.set("Gateway_station", "s_modtype", self.modtype.GetValue())
-        self.param_config.set("Gateway_station", "s_u_frequency", self.u_frequency_param.GetValue())
-        self.param_config.set("Gateway_station", "s_d_frequency", self.d_frequency_param.GetValue())
-        self.param_config.set("Gateway_station", "s_log_level", self.log_level.GetValue())
-        self.param_config.set("Gateway_station", "s_log_type", self.log_type.GetValue())
-        self.param_config.set("Gateway_station", "s_ip", self.ip.GetValue())
-        self.param_config.set("Gateway_station", "s_route_1", self.route_1.GetValue())
-        self.param_config.set("Gateway_station", "s_route_2", self.route_2.GetValue())
-        #写入配置文件
-        param_file = open("param.conf","w")
-        self.param_config.write(param_file)
-        param_file.close()        
-
-    def setup_param(self):
-        print 'in setup_param...'
-        ul_center_freq = int(self.u_frequency_param.GetValue())
-        dl_center_freq = int(self.d_frequency_param.GetValue())
-        cell_id = int(self.id_sc.GetValue())
-        log_level = str(self.log_level.GetValue())
-
-        if self.log_type.GetValue() == 'Memory':
-            flag = True
-        else:
-            flag = False
-
-        if self.prb_c.GetValue() == '1.4':
-            prbl = 6
-            fftl = 128
-            samp_rate = 2e6
-        else:
-            prbl = 15
-            fftl = 256
-            samp_rate = 4e6
-
-        if self.modtype.GetValue() == '16QAM':
-            mod_type = 2
-        else:
-            mod_type = 1
-
-        print prbl,fftl,mod_type,samp_rate,cell_id, ul_center_freq,dl_center_freq
-
-        self.tb.set_prbl(prbl)
-        self.tb.set_fftl(fftl)
-        self.tb.set_mod_type(mod_type)
-        self.tb.set_samp_rate(samp_rate)
-        self.tb.set_ul_center_freq(ul_center_freq*1e6)
-        self.tb.set_dl_center_freq(dl_center_freq*1e6)
-        self.tb.variable_eNB_config_0.set_logger(flag, log_level)
-
-        print self.tb.get_mod_type()
-
-    def setup_route(self):
-        tun0 = self.ip.GetValue()
-        route_1 = self.route_1.GetValue()
-        route_2 = self.route_2.GetValue()
-        
-        os.system('sudo ifconfig tun0 '+tun0)
-        os.system('sudo echo "1">/proc/sys/net/ipv4/ip_forward')
-        os.system('sudo route add '+route_1+' dev tun0')
-        os.system('sudo route add '+route_2+' dev tun0')
-
-    def OnRunENB_Packet(self,event):
-        self.run_eNB_data_btn.Disable()
-        self.run_eNB_audio_btn.Disable()
-        self.write_param()
-
-        self.t_1 = threading.Thread(target = self.update_panel)
-        self.t_1.setDaemon(True)
-        self.t_1.start()
-        
-        self.q = Queue()
-        self.p_1 = multiprocessing.Process(name='Run_ENB_Packet',
-                                target=self.Run_ENB_Packet)
-        self.p_1.daemon = True
-        self.p_1.start()
-
-
-    def Run_ENB_Packet(self):
-        os.system('rm -rvf *.log *.dat *.test')
-        time.sleep(2)
-
-        self.tb = run_eNB_packet()
-        self.setup_route()
-        # os.system('sudo ifconfig tun0 192.168.200.3')
-        # os.system('sudo route add 192.168.200.12 dev tun0')
-
-        self.setup_param()
-
-        self.t_1 = threading.Thread(target = self.put_data)
-        self.t_1.setDaemon(True)
-        self.t_1.start()
-
-        self.tb.start()
-        self.tb.wait()        
-
-    def OnRunENB_Audio(self,event):
-        self.run_eNB_audio_btn.Disable()
-        self.run_eNB_data_btn.Disable()
-        self.write_param()
-        
-        self.t_1 = threading.Thread(target = self.update_panel)
-        self.t_1.setDaemon(True)
-        self.t_1.start()
-
-        self.q = Queue()
-        self.p_1 = multiprocessing.Process(name='Run_ENB_Audio',
-                                target=self.Run_ENB_Audio)
-        self.p_1.daemon = True
-        self.p_1.start()
-
-    def Run_ENB_Audio(self):
-        os.system('rm -rvf *.log *.dat *.test')
-        # os.system('uhd_usrp_probe')
-        time.sleep(2)
-
-        self.tb = run_eNB_audio()
-        # self.setup_route()
-        # os.system('sudo ifconfig tun0 192.168.200.3')
-        # os.system('sudo route add 192.168.200.12 dev tun0')
-
-        self.setup_param()
-        
-        self.t_1 = threading.Thread(target = self.put_data)
-        self.t_1.setDaemon(True)
-        self.t_1.start()
-
-        self.tb.start()
-        self.tb.wait()
 
     def status_process(self):
         status = {}
@@ -450,6 +291,124 @@ class Detail_Disp(wx.Panel):
 
         return status
 
+    def write_param(self):
+        self.u_frequency_param.Disable()
+        self.d_frequency_param.Disable()
+        self.prb_c.Disable()
+        self.modtype.Disable()
+        self.id_sc.Disable()
+        self.log_level.Disable()
+        self.log_type.Disable()
+        self.stop_eNB_btn.Enable()
+        self.ip.Disable()
+        self.route_1.Disable()
+        self.route_2.Disable()
+
+        #将设置好的参数写入配置文件
+        self.param_config.read("param.conf")
+
+        if "Gateway_station" not in self.param_config.sections():
+            self.param_config.add_section("Gateway_station")
+
+        self.param_config.set("Gateway_station", "s_prb_c", self.prb_c.GetValue())
+        self.param_config.set("Gateway_station", "s_id_sc", self.id_sc.GetValue())
+        self.param_config.set("Gateway_station", "s_modtype", self.modtype.GetValue())
+        self.param_config.set("Gateway_station", "s_u_frequency", self.u_frequency_param.GetValue())
+        self.param_config.set("Gateway_station", "s_d_frequency", self.d_frequency_param.GetValue())
+        self.param_config.set("Gateway_station", "s_log_level", self.log_level.GetValue())
+        self.param_config.set("Gateway_station", "s_log_type", self.log_type.GetValue())
+        self.param_config.set("Gateway_station", "s_ip", self.ip.GetValue())
+        self.param_config.set("Gateway_station", "s_route_1", self.route_1.GetValue())
+        self.param_config.set("Gateway_station", "s_route_2", self.route_2.GetValue())
+        self.param_config.set("Gateway_station", "s_work_mod", self.work_mod.GetValue())
+        #写入配置文件
+        param_file = open("param.conf","w")
+        self.param_config.write(param_file)
+        param_file.close()
+
+    def setup_param(self):
+        print 'in setup_param...'
+        ul_center_freq = int(self.u_frequency_param.GetValue())
+        dl_center_freq = int(self.d_frequency_param.GetValue())
+        cell_id = int(self.id_sc.GetValue())
+        log_level = str(self.log_level.GetValue())
+
+        if self.log_type.GetValue() == u'内存日志':
+            flag = True
+        else:
+            flag = False
+
+        if self.prb_c.GetValue() == '1.4':
+            prbl = 6
+            fftl = 128
+            samp_rate = 2e6
+        else:
+            prbl = 15
+            fftl = 256
+            samp_rate = 4e6
+
+        if self.modtype.GetValue() == '16QAM':
+            mod_type = 2
+        else:
+            mod_type = 1
+
+        print prbl,fftl,mod_type,samp_rate,cell_id, ul_center_freq,dl_center_freq
+
+        self.tb.set_prbl(prbl)
+        self.tb.set_fftl(fftl)
+        self.tb.set_mod_type(mod_type)
+        self.tb.set_samp_rate(samp_rate)
+        self.tb.set_ul_center_freq(ul_center_freq*1e6)
+        self.tb.set_dl_center_freq(dl_center_freq*1e6)
+        self.tb.variable_eNB_config_0.set_logger(flag, log_level)
+
+        print self.tb.get_mod_type()
+
+    def setup_route(self):
+        tun0 = self.ip.GetValue()
+        route_1 = self.route_1.GetValue()
+        route_2 = self.route_2.GetValue()
+        
+        os.system('sudo ifconfig tun0 '+tun0)
+        os.system('sudo echo "1">/proc/sys/net/ipv4/ip_forward')
+        os.system('sudo route add '+route_1+' dev tun0')
+        os.system('sudo route add '+route_2+' dev tun0')
+
+    def OnStartENB(self,event):
+        self.start_eNB_btn.Disable()
+        self.stop_eNB_btn.Enable()
+        self.write_param()
+
+        self.t_1 = threading.Thread(target = self.update_panel)
+        self.t_1.setDaemon(True)
+        self.t_1.start()
+        
+        self.q = Queue()
+        self.p_1 = multiprocessing.Process(name='Run_ENB',
+                                target=self.Run_ENB)
+        self.p_1.daemon = True
+        self.p_1.start()
+
+    def Run_ENB(self):
+        os.system('rm -rvf *.log *.dat *.test')
+        time.sleep(2)
+
+        if self.work_mod.GetValue() == u'分组业务演示':
+            self.tb = run_eNB_packet()
+            self.setup_route()
+        else:
+            self.tb = run_eNB_audio()
+            # self.setup_route()
+
+        self.setup_param()
+
+        self.t_1 = threading.Thread(target = self.put_data)
+        self.t_1.setDaemon(True)
+        self.t_1.start()
+
+        self.tb.start()
+        self.tb.wait()
+
     def update_panel(self):
         while True:
             try:
@@ -480,11 +439,7 @@ class Detail_Disp(wx.Panel):
         self.route_2.Enable()
 
         self.stop_eNB_btn.Disable()
-        self.run_eNB_data_btn.Enable()
-        self.run_eNB_audio_btn.Enable()
-
-    def OnStartENB(self,event):
-        pass
+        self.start_eNB_btn.Enable()
 
     def OnConnect(self, event):
         self.IPText.Disable()
