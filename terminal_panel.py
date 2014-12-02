@@ -33,7 +33,7 @@ from wx.lib.pubsub import Publisher
 from MatplotPanel import MatplotPanel
 # from StatusPanel import StatusPanel
 
-from ue61_ping_15prb import ue61_ping_15prb as run_ue_packet
+# from ue61_ping_15prb import ue61_ping_15prb as run_ue_packet
 # from ue65_ping_15prb import ue65_ping_15prb as run_ue_packet
 from Audio_ue import Audio_ue as run_ue_audio
 
@@ -217,6 +217,8 @@ class MainFrame(wx.Frame):
         except: s_route_next = '192.168.200.12'
         try: s_work_mod = self.terminal_config.get("Terminal", "s_work_mod")
         except: s_work_mod = u'分组业务演示'
+        try: s_selected_rnti = self.terminal_config.get("Terminal", "s_selected_rnti")
+        except: s_selected_rnti = '61'        
 
         # 小区ID
         id_cell = wx.StaticText(self.panel, -1, u'小区ID:')
@@ -329,9 +331,14 @@ class MainFrame(wx.Frame):
         self.route = wx.ComboBox(self.panel, -1, s_route, wx.DefaultPosition,
          wx.DefaultSize, route_list, 0)
 
-        route_next_st = wx.StaticText(self.panel, -1, u"配置下一跳Route:")
+        route_next_st = wx.StaticText(self.panel, -1, u"配置Route:")
         self.route_next = wx.ComboBox(self.panel, -1, s_route_next, wx.DefaultPosition,
          wx.DefaultSize, ip_list, 0)
+
+        rnti_list = ['61','65']
+        rnti_select_st = wx.StaticText(self.panel, -1, u"RNTI选择:")
+        self.rnti_select = wx.ComboBox(self.panel, -1, s_selected_rnti, wx.DefaultPosition,
+         wx.DefaultSize, rnti_list, 0)
 
         work_mod_list = [u"分组业务演示",u"音频实时交互演示"]
         work_mod_st = wx.StaticText(self.panel, -1, u"演示模式选择:")
@@ -408,7 +415,9 @@ class MainFrame(wx.Frame):
         sizer_param.Add(route_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.route, 0, wx.EXPAND)
         sizer_param.Add(route_next_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer_param.Add(self.route_next, 0, wx.EXPAND)        
+        sizer_param.Add(self.route_next, 0, wx.EXPAND)
+        sizer_param.Add(rnti_select_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        sizer_param.Add(self.rnti_select, 0, wx.EXPAND)        
 
         box_st_param = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行参数配置'), wx.VERTICAL)
         box_st_param.Add(sizer_param, 0, wx.ALIGN_CENTER)
@@ -425,9 +434,9 @@ class MainFrame(wx.Frame):
 
         box_st2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行UE测试'), wx.VERTICAL)
         box_st2.Add(sizer_work_mod, 0, wx.ALIGN_CENTER)
-        box_st2.Add((10,10), 0)
+        # box_st2.Add((10,10), 0)
         box_st2.Add(ctrl_sizer2, 0, wx.ALIGN_CENTER)
-        box_st2.Add((10,10), 0)
+        # box_st2.Add((10,10), 0)
 
         sizer3 = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
         sizer3.AddGrowableCol(1)
@@ -442,14 +451,14 @@ class MainFrame(wx.Frame):
         sizer4.Add(self.connect_button, 0, wx.ALIGN_RIGHT)
 
         sizer5 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'远程连接服务器'), wx.VERTICAL)
-        sizer5.Add(sizer3, 0, wx.EXPAND | wx.ALL, 10)
-        sizer5.Add(sizer4, 0, wx.EXPAND | wx.ALL, 10)
+        sizer5.Add(sizer3, 0, wx.EXPAND | wx.ALL, 1)
+        sizer5.Add(sizer4, 0, wx.EXPAND | wx.ALL, 1)
 
         box3 = wx.BoxSizer(wx.VERTICAL)
         box3.Add(box_st_param,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
-        box3.Add((10,10), 0)
+        box3.Add((5,5), 0)
         box3.Add(box_st2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
-        box3.Add((10,10), 0)
+        box3.Add((5,5), 0)
         box3.Add(sizer5,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 0)
 
         box4 = wx.BoxSizer(wx.VERTICAL)
@@ -584,6 +593,8 @@ class MainFrame(wx.Frame):
         self.terminal_config.set("Terminal", "s_route", self.route.GetValue())
         self.terminal_config.set("Terminal", "s_route_next", self.route_next.GetValue())
         self.terminal_config.set("Terminal", "s_work_mod", self.work_mod.GetValue())
+        self.terminal_config.set("Terminal", "s_selected_rnti", self.rnti_select.GetValue())
+
         #写入配置文件
         param_file = open("terminal.conf","w")
         self.terminal_config.write(param_file)
@@ -653,12 +664,19 @@ class MainFrame(wx.Frame):
         os.system('rm -rvf *.log *.dat *.test')
         time.sleep(2)
 
+        if self.rnti_select.GetValue() == '61':
+            from ue61_ping_15prb import ue61_ping_15prb as run_ue_packet
+            print 'ue61_ping_15prb...'
+        else:
+            from ue65_ping_15prb import ue65_ping_15prb as run_ue_packet
+            print 'ue65_ping_15prb...'
+
         if self.work_mod.GetValue() == u'分组业务演示':
             self.tb = run_ue_packet()
             self.setup_route()
         else:
             self.tb = run_ue_audio()
-            # self.setup_route()            
+            # self.setup_route()
 
         self.setup_param()
 
