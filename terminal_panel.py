@@ -197,10 +197,10 @@ class MainFrame(wx.Frame):
         self.create_list()
 
         # 参数从配置文件读取，如果配置文件不存在，则使用默认值
-        try: s_prb_c = self.terminal_config.get("Terminal", "s_prb_c")
-        except: s_prb_c = '1.4'
-        try: s_id_sc = self.terminal_config.get("Terminal", "s_id_sc")
-        except: s_id_sc = '10'
+        # try: s_prb_c = self.terminal_config.get("Terminal", "s_prb_c")
+        # except: s_prb_c = '1.4'
+        # try: s_id_sc = self.terminal_config.get("Terminal", "s_id_sc")
+        # except: s_id_sc = '10'
         try: s_u_frequency = self.terminal_config.get("Terminal", "s_u_frequency")
         except: s_u_frequency = '800'
         try: s_d_frequency = self.terminal_config.get("Terminal", "s_d_frequency")
@@ -219,6 +219,13 @@ class MainFrame(wx.Frame):
         except: s_work_mod = u'分组业务演示'
         try: s_selected_rnti = self.terminal_config.get("Terminal", "s_selected_rnti")
         except: s_selected_rnti = '61'        
+        #设置连接服务器的IP地址和端口号
+        self.terminal_config.read("terminal.conf")
+        try: s_ip_remote = self.terminal_config.get("address", "s_ip_remote")
+        except: s_ip_remote = '192.168.139.180'
+
+        try: s_port = self.terminal_config.get("address", "s_port")
+        except: s_port = '7000'
 
         # 小区ID
         id_cell = wx.StaticText(self.panel, -1, u'小区ID:')
@@ -266,30 +273,6 @@ class MainFrame(wx.Frame):
         process_state_st = wx.StaticText(self.panel, -1, u"处理状态(捕获／跟踪):\t\t\t")
         self.process_state = PanelOne(self.panel)
 
-        #连接按钮
-        self.connect_button = wx.Button(self.panel, -1, u"连接")
-        self.connect_button.SetBackgroundColour('black')
-        self.connect_button.SetForegroundColour('white')
-        self.Bind(wx.EVT_BUTTON, self.OnConnect, self.connect_button)  
-        # self.connect_button.SetDefault() 
-
-        #设置连接服务器的IP地址和端口号
-        self.terminal_config.read("terminal.conf")
-        try: s_ip_remote = self.terminal_config.get("address", "s_ip_remote")
-        except: s_ip_remote = '192.168.139.180'
-
-        try: s_port = self.terminal_config.get("address", "s_port")
-        except: s_port = '7000'
-
-        ip_st = wx.StaticText(self.panel, -1, u"IP地址 :")
-        self.IPText = wx.TextCtrl(self.panel, -1, s_ip_remote)
-        self.IPText.SetBackgroundColour('#c2e6f8')
-        self.IPText.SetForegroundColour('black')
-        port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
-        self.PortText = wx.TextCtrl(self.panel, -1, s_port)
-        self.PortText.SetBackgroundColour('#c2e6f8')
-        self.PortText.SetForegroundColour('black')        
-
         #上行中心频率
         u_frequency_list = ['20','800','900','1000','1200']
         u_frequency_st_param = wx.StaticText(self.panel, -1, u"上行中心频率(MHz):")
@@ -302,14 +285,14 @@ class MainFrame(wx.Frame):
         self.d_frequency_param = wx.ComboBox(self.panel, -1, s_d_frequency, wx.DefaultPosition,
          wx.DefaultSize, d_frequency_list, 0)
         
-        PRBList = ['1.4','3']
-        prb_statictext = wx.StaticText(self.panel, -1, u"链路带宽(MHz):")
-        self.prb_c = wx.ComboBox(self.panel, -1, s_prb_c, wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
+        # PRBList = ['1.4','3']
+        # prb_statictext = wx.StaticText(self.panel, -1, u"链路带宽(MHz):")
+        # self.prb_c = wx.ComboBox(self.panel, -1, s_prb_c, wx.DefaultPosition, wx.DefaultSize, PRBList, 0)
 
         #小区ID
-        id_statictext = wx.StaticText(self.panel, -1, u"小区ID:")
-        self.id_sc = wx.SpinCtrl(self.panel, -1, s_id_sc, (-1, -1))
-        self.id_sc.SetRange(0,503)
+        # id_statictext = wx.StaticText(self.panel, -1, u"小区ID:")
+        # self.id_sc = wx.SpinCtrl(self.panel, -1, s_id_sc, (-1, -1))
+        # self.id_sc.SetRange(0,503)
 
         log_type_list = ["文件日志","内存日志"]
         log_type_st = wx.StaticText(self.panel, -1, u"日志类型:")
@@ -354,6 +337,30 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnStopUE, self.stop_ue_btn)
         self.stop_ue_btn.Disable()
 
+        # 友情提示控件
+        hint_st = wx.StaticText(self.panel, -1, u"温馨提示：\n分组业务演示包含数据与视频的测试，" + 
+            "\n音频通过话筒采样实现接、听")
+        hint_st.SetForegroundColour('black')
+        hint_st.SetBackgroundColour('white')
+        font = wx.Font(10, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
+        hint_st.SetFont(font)
+
+        ip_st = wx.StaticText(self.panel, -1, u"IP地址 :")
+        self.IPText = wx.TextCtrl(self.panel, -1, s_ip_remote)
+        self.IPText.SetBackgroundColour('#c2e6f8')
+        self.IPText.SetForegroundColour('black')
+        port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
+        self.PortText = wx.TextCtrl(self.panel, -1, s_port)
+        self.PortText.SetBackgroundColour('#c2e6f8')
+        self.PortText.SetForegroundColour('black')        
+
+        #连接按钮
+        self.connect_button = wx.Button(self.panel, -1, u"连接")
+        self.connect_button.SetBackgroundColour('black')
+        self.connect_button.SetForegroundColour('white')
+        self.Bind(wx.EVT_BUTTON, self.OnConnect, self.connect_button)  
+        # self.connect_button.SetDefault() 
+
         ###########开始布局############
         sizer1 = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
         sizer1.AddGrowableCol(1)
@@ -396,16 +403,16 @@ class MainFrame(wx.Frame):
         box1 = wx.BoxSizer(wx.VERTICAL)
         box1.Add(sizer2,0,wx.EXPAND | wx.ALL|wx.TOP, 0)
 
-        sizer_param = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
+        sizer_param = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
         sizer_param.AddGrowableCol(1)
         sizer_param.Add(u_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.u_frequency_param, 0, wx.EXPAND)
         sizer_param.Add(d_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.d_frequency_param, 0, wx.EXPAND)
-        sizer_param.Add(prb_statictext, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer_param.Add(self.prb_c, 0, wx.EXPAND)
-        sizer_param.Add(id_statictext, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer_param.Add(self.id_sc, 0, wx.EXPAND)        
+        # sizer_param.Add(prb_statictext, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        # sizer_param.Add(self.prb_c, 0, wx.EXPAND)
+        # sizer_param.Add(id_statictext, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        # sizer_param.Add(self.id_sc, 0, wx.EXPAND)        
         sizer_param.Add(log_type_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.log_type, 0, wx.EXPAND)        
         sizer_param.Add(log_level_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
@@ -424,7 +431,7 @@ class MainFrame(wx.Frame):
 
         sizer_work_mod = wx.FlexGridSizer(cols=2, hgap=5, vgap=10)
         sizer_work_mod.Add(work_mod_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer_work_mod.Add(self.work_mod, 0, wx.EXPAND)        
+        sizer_work_mod.Add(self.work_mod, 0, wx.EXPAND)
 
         ctrl_sizer2 = wx.BoxSizer(wx.HORIZONTAL)
         ctrl_sizer2.Add((20,20), 0)
@@ -434,9 +441,9 @@ class MainFrame(wx.Frame):
 
         box_st2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行UE测试'), wx.VERTICAL)
         box_st2.Add(sizer_work_mod, 0, wx.ALIGN_CENTER)
-        # box_st2.Add((10,10), 0)
+        box_st2.Add((10,10), 0)
         box_st2.Add(ctrl_sizer2, 0, wx.ALIGN_CENTER)
-        # box_st2.Add((10,10), 0)
+        box_st2.Add(hint_st, 0)
 
         sizer3 = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
         sizer3.AddGrowableCol(1)
@@ -563,13 +570,13 @@ class MainFrame(wx.Frame):
         status['rx_crc_right_rate'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_crc_right_rate'])
         status['rx_mac2rlc_rate'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_mac2rlc_rate'])
         status['rx_rlc2_rate'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc2_rate'])
-        return status        
+        return status
 
     def write_param(self):
         self.u_frequency_param.Disable()
         self.d_frequency_param.Disable()
-        self.prb_c.Disable()
-        self.id_sc.Disable()
+        # self.prb_c.Disable()
+        # self.id_sc.Disable()
         self.log_level.Disable()
         self.log_type.Disable()
         self.stop_ue_btn.Enable()
@@ -583,8 +590,8 @@ class MainFrame(wx.Frame):
         if "Terminal" not in self.terminal_config.sections():
             self.terminal_config.add_section("Terminal")
 
-        self.terminal_config.set("Terminal", "s_prb_c", self.prb_c.GetValue())
-        self.terminal_config.set("Terminal", "s_id_sc", self.id_sc.GetValue())
+        # self.terminal_config.set("Terminal", "s_prb_c", self.prb_c.GetValue())
+        # self.terminal_config.set("Terminal", "s_id_sc", self.id_sc.GetValue())
         self.terminal_config.set("Terminal", "s_u_frequency", self.u_frequency_param.GetValue())
         self.terminal_config.set("Terminal", "s_d_frequency", self.d_frequency_param.GetValue())
         self.terminal_config.set("Terminal", "s_log_level", self.log_level.GetValue())
@@ -601,35 +608,30 @@ class MainFrame(wx.Frame):
         param_file.close()
 
     def setup_param(self):
-        print 'in setup_param...'
-        ul_center_freq = int(self.u_frequency_param.GetValue())
-        dl_center_freq = int(self.d_frequency_param.GetValue())
-        cell_id = int(self.id_sc.GetValue())
-        log_level = str(self.log_level.GetValue())
+        param_temp = {}
+        param_temp[u'd_frequency_T'] = self.u_frequency_param.GetValue()
+        param_temp[u'u_frequency_T'] = self.d_frequency_param.GetValue()
+        # param_temp[u'Bandwidth'] = self.prb_c.GetValue()
+        param_temp[u'log_level'] = str(self.log_level.GetValue())
 
         if self.log_type.GetValue() == u'内存日志':
-            flag = True
+            param_temp[u'log_type'] = True
         else:
-            flag = False
+            param_temp[u'log_type'] = False
 
-        if self.prb_c.GetValue() == '1.4':
-            prbl = 6
-            fftl = 128
-            samp_rate = 2e6
-        else:
-            prbl = 15
-            fftl = 256
-            samp_rate = 4e6
+        param = {u'n_pucch': u'0', u'work_mod': u'1', u'DMRS1_T': u'4',
+        u'Delta_ss_T': u'10', u'algorithm_T': u'Max_Log',
+        u'samp_rate_T': u'4M',u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10',
+        u'decision_type_T': u'soft', u'shift_T': u'1',u'IP': u'192.168.200.111',
+        u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
+        u'RNTI': u'65', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1',
+        u'M_part': u'2', u'route': u'192.168.200.333', u'gain_r_T': u'10',
+        u'SRS_period': u'2',u'id_cell': 10, u'gain_s_T': u'10', u'iter_num_T': u'4',
+        u'SR_offset': u'2',u'Threshold': u'0.5', u'SRS_offset': u'0'}
+        
+        param.update(param_temp)
 
-        print prbl,fftl,samp_rate,cell_id, ul_center_freq,dl_center_freq,
-        print flag,log_level
-
-        self.tb.set_prbl(prbl)
-        self.tb.set_fftl(fftl)
-        self.tb.set_samp_rate(samp_rate)
-        self.tb.set_ul_center_freq(ul_center_freq*1e6)
-        self.tb.set_dl_center_freq(dl_center_freq*1e6)
-        self.tb.variable_ue_config_0.set_logger(flag, log_level)
+        return param
 
     def setup_route(self):
         tun2 = self.ip.GetValue()
@@ -646,6 +648,8 @@ class MainFrame(wx.Frame):
             os.system('sudo route add '+route_next+' dev tun1')
 
     def OnStartUE(self,event):
+        print '########################'
+        print 'start...'        
         self.start_ue_btn.Disable()
         self.stop_ue_btn.Enable()
         self.write_param()
@@ -663,6 +667,7 @@ class MainFrame(wx.Frame):
     def Run_UE(self):
         os.system('rm -rvf *.log *.dat *.test')
         time.sleep(2)
+        param = self.setup_param()
 
         if self.rnti_select.GetValue() == '61':
             from ue61_ping_15prb import ue61_ping_15prb as run_ue_packet
@@ -672,13 +677,11 @@ class MainFrame(wx.Frame):
             print 'ue65_ping_15prb...'
 
         if self.work_mod.GetValue() == u'分组业务演示':
-            self.tb = run_ue_packet()
+            self.tb = run_ue_packet(**param)
             self.setup_route()
         else:
-            self.tb = run_ue_audio()
+            self.tb = run_ue_audio(**param)
             # self.setup_route()
-
-        self.setup_param()
 
         self.t_1 = threading.Thread(target = self.put_data)
         self.t_1.setDaemon(True)
@@ -704,11 +707,11 @@ class MainFrame(wx.Frame):
 
     def OnStopUE(self,event):
         self.p_1.terminate()
-
+        print 'stop...'
         self.u_frequency_param.Enable()
         self.d_frequency_param.Enable()
-        self.prb_c.Enable()
-        self.id_sc.Enable()
+        # self.prb_c.Enable()
+        # self.id_sc.Enable()
         self.log_level.Enable()
         self.log_type.Enable()
         self.ip.Enable()

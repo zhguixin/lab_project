@@ -135,6 +135,14 @@ class Detail_Disp(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnStopENB, self.stop_eNB_btn)
         self.stop_eNB_btn.Disable()
 
+        # 友情提示控件
+        hint_st = wx.StaticText(self, -1, u"温馨提示：\n分组业务演示包含数据与视频的测试，" + 
+            "\n音频通过话筒采样实现接、听")
+        hint_st.SetForegroundColour('black')
+        hint_st.SetBackgroundColour('white')
+        font = wx.Font(10, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
+        hint_st.SetFont(font)
+
         ip_st_remote = wx.StaticText(self, -1, u"IP地址 :")
         self.IPText = wx.TextCtrl(self, -1, s_ip_remote)
         self.IPText.SetBackgroundColour('#c2e6f8')
@@ -193,7 +201,8 @@ class Detail_Disp(wx.Panel):
         box_st2.Add(sizer_work_mod, 0, wx.ALIGN_CENTER)
         box_st2.Add((10,10), 0)
         box_st2.Add(sizer_stop, 0, wx.ALIGN_CENTER)
-        box_st2.Add((10,10), 0)
+        box_st2.Add((5,5), 0)
+        box_st2.Add(hint_st, 0)
         
         sizer3 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer3.AddGrowableCol(1)
@@ -212,7 +221,6 @@ class Detail_Disp(wx.Panel):
         sizer5.Add(sizer4, 0, wx.EXPAND | wx.ALL, 10)
 
         sizer_st = wx.StaticBoxSizer(wx.StaticBox(self, wx.NewId(), u''), wx.VERTICAL)
-        # sizer_st.Add(sizer1,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
         sizer_st.Add(wx.StaticLine(self), 0,wx.EXPAND|wx.TOP|wx.BOTTOM,0)
         sizer_st.Add(sizer_st_param,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
         sizer_st.Add(box_st2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
@@ -328,41 +336,30 @@ class Detail_Disp(wx.Panel):
 
     def setup_param(self):
         print 'in setup_param...'
-        ul_center_freq = int(self.u_frequency_param.GetValue())
-        dl_center_freq = int(self.d_frequency_param.GetValue())
-        cell_id = int(self.id_sc.GetValue())
-        log_level = str(self.log_level.GetValue())
+        param_temp = {}
+        param_temp[u'd_frequency_G'] = self.u_frequency_param.GetValue()
+        param_temp[u'u_frequency_G'] = self.d_frequency_param.GetValue()
+        param_temp[u'Bandwidth'] = self.prb_c.GetValue()
+        param_temp[u'mod_type_d'] = self.modtype.GetValue()
+        param_temp[u'mod_type_u'] = self.modtype.GetValue()
+        param_temp[u'log_level'] = str(self.log_level.GetValue())
 
         if self.log_type.GetValue() == u'内存日志':
-            flag = True
+            param_temp[u'log_type'] = True
         else:
-            flag = False
+            param_temp[u'log_type'] = False        
 
-        if self.prb_c.GetValue() == '1.4':
-            prbl = 6
-            fftl = 128
-            samp_rate = 2e6
-        else:
-            prbl = 15
-            fftl = 256
-            samp_rate = 4e6
+        param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
+        u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', 
+        u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log',
+        u'm_part': u'2', u'shift_G': u'1',u'iter_num_G': u'4',
+        u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', 
+        u'M_part': u'2', u'route': u'192.168.200.3', u'samp_rate_G': u'4M',
+        u'data_rules_G': u'1', u'gain_r_G': u'10',
+        u'DMRS2_G': u'4', u'id_cell': 10}
 
-        if self.modtype.GetValue() == '16QAM':
-            mod_type = 2
-        else:
-            mod_type = 1
-
-        print prbl,fftl,mod_type,samp_rate,cell_id, ul_center_freq,dl_center_freq
-
-        self.tb.set_prbl(prbl)
-        self.tb.set_fftl(fftl)
-        self.tb.set_mod_type(mod_type)
-        self.tb.set_samp_rate(samp_rate)
-        self.tb.set_ul_center_freq(ul_center_freq*1e6)
-        self.tb.set_dl_center_freq(dl_center_freq*1e6)
-        self.tb.variable_eNB_config_0.set_logger(flag, log_level)
-
-        print self.tb.get_mod_type()
+        param.update(param_temp)
+        return param
 
     def setup_route(self):
         tun0 = self.ip.GetValue()
@@ -375,6 +372,8 @@ class Detail_Disp(wx.Panel):
         os.system('sudo route add '+route_2+' dev tun0')
 
     def OnStartENB(self,event):
+        print '########################'
+        print 'start...'
         self.start_eNB_btn.Disable()
         self.stop_eNB_btn.Enable()
         self.write_param()
@@ -393,14 +392,14 @@ class Detail_Disp(wx.Panel):
         os.system('rm -rvf *.log *.dat *.test')
         time.sleep(2)
 
+        param = self.setup_param()
+
         if self.work_mod.GetValue() == u'分组业务演示':
-            self.tb = run_eNB_packet()
+            self.tb = run_eNB_packet(**param)
             self.setup_route()
         else:
-            self.tb = run_eNB_audio()
+            self.tb = run_eNB_audio(**param)
             # self.setup_route()
-
-        self.setup_param()
 
         self.t_1 = threading.Thread(target = self.put_data)
         self.t_1.setDaemon(True)
@@ -426,6 +425,7 @@ class Detail_Disp(wx.Panel):
 
     def OnStopENB(self,event):
         self.p_1.terminate()
+        print 'stop...'
 
         self.u_frequency_param.Enable()
         self.d_frequency_param.Enable()
