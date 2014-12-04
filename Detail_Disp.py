@@ -33,6 +33,8 @@ from Audio_eNB import Audio_eNB as run_eNB_audio
 reload(sys)  
 sys.setdefaultencoding("utf-8")
 
+param = {}
+
 class Detail_Disp(wx.Panel):
 
     def __init__(self,parent):
@@ -66,7 +68,7 @@ class Detail_Disp(wx.Panel):
         try: s_route_2 = self.param_config.get("Gateway_station", "s_route_2")
         except: s_route_2 = '192.168.200.12'
         try: s_work_mod = self.param_config.get("Gateway_station", "s_work_mod")
-        except: s_work_mod = 0
+        except: s_work_mod = u'分组业务演示'
         try: s_ip_remote = self.param_config.get("Address", "s_ip_remote")
         except: s_ip_remote = '192.168.139.180'
         try: s_port = self.param_config.get("Address", "s_port")
@@ -336,29 +338,30 @@ class Detail_Disp(wx.Panel):
 
     def setup_param(self):
         print 'in setup_param...'
-        param_temp = {}
-        param_temp[u'd_frequency_G'] = self.u_frequency_param.GetValue()
-        param_temp[u'u_frequency_G'] = self.d_frequency_param.GetValue()
-        param_temp[u'Bandwidth'] = self.prb_c.GetValue()
-        param_temp[u'mod_type_d'] = self.modtype.GetValue()
-        param_temp[u'mod_type_u'] = self.modtype.GetValue()
-        param_temp[u'log_level'] = str(self.log_level.GetValue())
+        global param
+        param[u'u_frequency_G'] = self.u_frequency_param.GetValue()
+        param[u'd_frequency_G'] = self.d_frequency_param.GetValue()
+        param[u'Bandwidth'] = self.prb_c.GetValue()
+        param[u'mod_type_d'] = self.modtype.GetValue()
+        param[u'mod_type_u'] = self.modtype.GetValue()
+        param[u'log_level'] = str(self.log_level.GetValue())
 
         if self.log_type.GetValue() == u'内存日志':
-            param_temp[u'log_type'] = True
+            param[u'log_type'] = True
         else:
-            param_temp[u'log_type'] = False        
+            param[u'log_type'] = False        
 
-        param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
-        u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', 
-        u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log',
-        u'm_part': u'2', u'shift_G': u'1',u'iter_num_G': u'4',
-        u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', 
-        u'M_part': u'2', u'route': u'192.168.200.3', u'samp_rate_G': u'4M',
-        u'data_rules_G': u'1', u'gain_r_G': u'10',
-        u'DMRS2_G': u'4', u'id_cell': 10}
+        # param = {u'Threshold': u'0.7', u'ip': u'192.168.200.11', u'work_mod': u'1',
+        # u'exp_code_rate_d_G': u'0.4', u'decision_type_G': u'soft', 
+        # u'Delta_ss_G': u'10', u'algorithm_G': u'Max_Log',
+        # u'm_part': u'2', u'shift_G': u'1',u'iter_num_G': u'4',
+        # u'exp_code_rate_u_G': u'0.4', u'gain_s_G': u'10', 
+        # u'M_part': u'2', u'route': u'192.168.200.3', u'samp_rate_G': u'4M',
+        # u'data_rules_G': u'1', u'gain_r_G': u'10',
+        # u'DMRS2_G': u'4', u'id_cell': 10}
 
-        param.update(param_temp)
+        param.update(param)
+
         return param
 
     def setup_route(self):
@@ -598,6 +601,10 @@ class Detail_Disp(wx.Panel):
     #子进程
     def start_top_block(self):
         global param 
+        param.update(self.setup_param())
+        # self.setup_param().update(param)
+        print param
+
         os.system('rm -rvf *.log *.dat *.test')
         os.system('uhd_usrp_probe')
         if param['work_mod'] == '1':
@@ -605,12 +612,12 @@ class Detail_Disp(wx.Panel):
             # os.system('sudo ifconfig tun0 192.168.200.3')
             # os.system('sudo route add 192.168.200.12 dev tun0')
         elif param['work_mod'] == '0':
-            self.tb = run_eNB_packet()
+            self.tb = run_eNB_packet(**param)
             self.setup_route()
             # os.system('sudo ifconfig tun0 192.168.200.3')
             # os.system('sudo route add 192.168.200.12 dev tun0')
         elif param['work_mod'] == '2':
-            self.tb = run_eNB_packet()
+            self.tb = run_eNB_packet(**param)
             self.setup_route()
             # os.system('sudo ifconfig tun0 192.168.200.3')
             # os.system('sudo route add 192.168.200.12 dev tun0')

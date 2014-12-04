@@ -583,6 +583,7 @@ class MainFrame(wx.Frame):
         self.ip.Disable()
         self.route.Disable()
         self.route_next.Disable()
+        self.rnti_select.Disable()
 
         #将设置好的参数写入配置文件
         self.terminal_config.read("terminal.conf")
@@ -608,9 +609,10 @@ class MainFrame(wx.Frame):
         param_file.close()
 
     def setup_param(self):
+        global param
         param_temp = {}
-        param_temp[u'd_frequency_T'] = self.u_frequency_param.GetValue()
-        param_temp[u'u_frequency_T'] = self.d_frequency_param.GetValue()
+        param_temp[u'u_frequency_T'] = self.u_frequency_param.GetValue()
+        param_temp[u'd_frequency_T'] = self.d_frequency_param.GetValue()
         # param_temp[u'Bandwidth'] = self.prb_c.GetValue()
         param_temp[u'log_level'] = str(self.log_level.GetValue())
 
@@ -619,15 +621,15 @@ class MainFrame(wx.Frame):
         else:
             param_temp[u'log_type'] = False
 
-        param = {u'n_pucch': u'0', u'work_mod': u'1', u'DMRS1_T': u'4',
-        u'Delta_ss_T': u'10', u'algorithm_T': u'Max_Log',
-        u'samp_rate_T': u'4M',u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10',
-        u'decision_type_T': u'soft', u'shift_T': u'1',u'IP': u'192.168.200.111',
-        u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
-        u'RNTI': u'65', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1',
-        u'M_part': u'2', u'route': u'192.168.200.333', u'gain_r_T': u'10',
-        u'SRS_period': u'2',u'id_cell': 10, u'gain_s_T': u'10', u'iter_num_T': u'4',
-        u'SR_offset': u'2',u'Threshold': u'0.5', u'SRS_offset': u'0'}
+        # param = {u'n_pucch': u'0', u'work_mod': u'1', u'DMRS1_T': u'4',
+        # u'Delta_ss_T': u'10', u'algorithm_T': u'Max_Log',
+        # u'samp_rate_T': u'4M',u'C_SRS': u'4', u'm_part': u'2', u'n_RRC': u'10',
+        # u'decision_type_T': u'soft', u'shift_T': u'1',u'IP': u'192.168.200.111',
+        # u'K_TC': u'0', u'n_SRS': u'4', u'SR_periodicity': u'10',
+        # u'RNTI': u'65', u'B_SRS': u'1', u't_advance': u'0', u'data_rules_T': u'1',
+        # u'M_part': u'2', u'route': u'192.168.200.333', u'gain_r_T': u'10',
+        # u'SRS_period': u'2',u'id_cell': 10, u'gain_s_T': u'10', u'iter_num_T': u'4',
+        # u'SR_offset': u'2',u'Threshold': u'0.5', u'SRS_offset': u'0'}
         
         param.update(param_temp)
 
@@ -717,6 +719,7 @@ class MainFrame(wx.Frame):
         self.ip.Enable()
         self.route.Enable()
         self.route_next.Enable()
+        self.rnti_select.Enable()
 
         self.stop_ue_btn.Disable()
         self.start_ue_btn.Enable()
@@ -872,17 +875,27 @@ class MainFrame(wx.Frame):
     def start_top_block(self):
         os.system('sudo rm  *.dat *.log')
         time.sleep(2)
+        
+        if self.rnti_select.GetValue() == '61':
+            from ue61_ping_15prb import ue61_ping_15prb as run_ue_packet
+            print 'ue61_ping_15prb...'
+        else:
+            from ue65_ping_15prb import ue65_ping_15prb as run_ue_packet
+            print 'ue65_ping_15prb...'
+
         global param 
+        param.update(self.setup_param())
+        
         if param['work_mod'] == '2': 
             self.tb = run_ue_packet()
             self.setup_route()
             # os.system('sudo ifconfig tun1 192.168.200.12')
             # os.system('sudo route add 192.168.200.3 tun1')
         elif param['work_mod'] == '0':
-            self.tb = run_ue_packet()
+            self.tb = run_ue_packet(**param)
             self.setup_route()
         elif param['work_mod'] == '1':
-            self.tb = run_ue_audio()
+            self.tb = run_ue_audio(**param)
             # os.system('sudo ifconfig tun1 192.168.200.12')
             # os.system('sudo route add 192.168.200.3 tun1')
 
