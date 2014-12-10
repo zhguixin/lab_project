@@ -33,8 +33,6 @@ from wx.lib.pubsub import Publisher
 from MatplotPanel import MatplotPanel
 # from StatusPanel import StatusPanel
 
-# from ue61_ping_15prb import ue61_ping_15prb as run_ue_packet
-# from ue65_ping_15prb import ue65_ping_15prb as run_ue_packet
 from Audio_ue import Audio_ue as run_ue_audio
 
 #设置系统默认编码方式，不用下面两句，中文会乱码
@@ -123,6 +121,51 @@ class MainFrame(wx.Frame):
 
         # self.u_frequency.SetLabel(str(dict_status['u_freq']))
         # self.d_frequency.SetLabel(str(dict_status['d_freq']))
+        
+        rows_rx = [
+        ('sync递交子帧数目 ',dict_status['sync_suf_num']+' 个'),
+        ('下行DEMUX子帧数目 ',dict_status['demapper_suf_num']+' 个'),
+        ('',''),
+        ('RX CRC错误总包数',dict_status['wrong_rx_mac_pdu_count']+' packet'),
+        ('RX CRC错误字节数',dict_status['wrong_rx_mac_pdu_bytes']+' bytes'),
+        ('RX CRC正确总包数',dict_status['rx_right_mac_pdu_count']+' packet'),
+        ('RX CRC正确字节数',dict_status['rx_right_mac_pdu_bytes']+' bytes'),
+        ('RX CRC正确速率 ',dict_status['rx_crc_right_rate']+' B/s'),
+        ('',''),
+        ('MAC==>RLC总包数',dict_status['rx_rlc_pdu_count']+' packet'),
+        ('MAC==>RLC字节数',dict_status['rx_rlc_pdu_bytes']+' bytes'),
+        ('MAC==>RLC字节速率',dict_status['rx_mac2rlc_rate']+' B/s'),
+        ('',''),
+        ('RLC==>高层总包数',dict_status['rx_rlc_sdu_count']+' packet'),
+        ('RLC==>高层字节数',dict_status['rx_rlc_sdu_bytes']+' bytes'),
+        ('RLC==>高层字节速率',dict_status['rx_rlc2_rate']+' B/s'),
+        # ('',''),
+        # ('RX 丢弃调度数目',dict_status['total_usg_num']),
+        # ('RX 总调度的数目',dict_status['discard_usg_num']),
+        ('',''),
+        ('统计数据间隔为 ',str(dict_status['rate_record_time'])+' ms'),
+        ]
+
+        rows_tx = [
+        ('TX 发送的SR数目',dict_status['tx_sr_num']),
+        ('TX 预补偿归一化频偏',dict_status['tx_cfo_precompensation']),
+        ('',''),
+        ('TX 高层==>RLC总包数',dict_status['tx_rlc_sdu_count']+' packet'),
+        ('TX 高层==>RLC字节数',dict_status['tx_rlc_sdu_bytes']+' bytes'),
+        ('TX 高层==>RLC字节速率',dict_status['tx_2rlc_rate']+' B/s'),
+        ('',''),
+        ('TX RLC==>MAC总包数',dict_status['tx_rlc_pdu_count']+' packet'),
+        ('TX RLC==>MAC字节数',dict_status['tx_rlc_pdu_bytes']+' bytes'),
+        ('TX RLC==>MAC字节速率',dict_status['tx_rlc2mac_rate']+' B/s'),
+        ('',''),
+        ('UE端丢弃调度数目 ',dict_status['discard_usg_num']),
+        ('UE端总调度的数目 ',dict_status['total_usg_num']),
+        ]
+        for index in range(len(rows_rx)):
+            self.list_rx.SetStringItem(index, 1, str(rows_rx[index][1]))
+
+        for index in range(len(rows_tx)):
+            self.list_tx.SetStringItem(index, 1, str(rows_tx[index][1])) 
 
     def create_list(self):
         self.list_rx = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(320,450))
@@ -339,7 +382,7 @@ class MainFrame(wx.Frame):
 
         # 友情提示控件
         hint_st = wx.StaticText(self.panel, -1, u"温馨提示：\n分组业务演示包含数据与视频的测试，" + 
-            "\n音频通过话筒采样实现接、听")
+            "\n音频通过话筒采样实现接、听;本地参数配置起决定性作用")
         hint_st.SetForegroundColour('black')
         hint_st.SetBackgroundColour('white')
         font = wx.Font(10, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
@@ -412,11 +455,11 @@ class MainFrame(wx.Frame):
         # sizer_param.Add(prb_statictext, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         # sizer_param.Add(self.prb_c, 0, wx.EXPAND)
         # sizer_param.Add(id_statictext, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        # sizer_param.Add(self.id_sc, 0, wx.EXPAND)        
+        # sizer_param.Add(self.id_sc, 0, wx.EXPAND)
         sizer_param.Add(log_type_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.log_type, 0, wx.EXPAND)        
         sizer_param.Add(log_level_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer_param.Add(self.log_level, 0, wx.EXPAND)    
+        sizer_param.Add(self.log_level, 0, wx.EXPAND)
         sizer_param.Add(ip_st_remote, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.ip, 0, wx.EXPAND)  
         sizer_param.Add(route_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
@@ -424,7 +467,7 @@ class MainFrame(wx.Frame):
         sizer_param.Add(route_next_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.route_next, 0, wx.EXPAND)
         sizer_param.Add(rnti_select_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer_param.Add(self.rnti_select, 0, wx.EXPAND)        
+        sizer_param.Add(self.rnti_select, 0, wx.EXPAND)
 
         box_st_param = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行参数配置'), wx.VERTICAL)
         box_st_param.Add(sizer_param, 0, wx.ALIGN_CENTER)
@@ -658,9 +701,10 @@ class MainFrame(wx.Frame):
 
         self.t_1 = threading.Thread(target = self.update_panel)
         self.t_1.setDaemon(True)
-        self.t_1.start()        
+        self.t_1.start()
 
         self.q = Queue()
+        self.q_2 = Queue()
         self.p_1 = multiprocessing.Process(name='Run_UE',
                                 target=self.Run_UE)
         self.p_1.daemon = True
@@ -690,6 +734,10 @@ class MainFrame(wx.Frame):
         self.t_1.start()
 
         self.tb.start()
+
+        print self.q_2.get()#阻塞在此处
+        # print self.q_2.get_nowait()
+        self.tb.stop()
         self.tb.wait()
 
     def update_panel(self):
@@ -708,8 +756,9 @@ class MainFrame(wx.Frame):
             time.sleep(1)
 
     def OnStopUE(self,event):
-        self.p_1.terminate()
-        print 'stop...'
+        self.q_2.put('\nquit...')
+        time.sleep(1)
+
         self.u_frequency_param.Enable()
         self.d_frequency_param.Enable()
         # self.prb_c.Enable()
@@ -724,7 +773,11 @@ class MainFrame(wx.Frame):
         self.stop_ue_btn.Disable()
         self.start_ue_btn.Enable()
 
+        self.p_1.terminate()
+
     def OnConnect(self, event):
+        self.write_param()
+
         self.IPText.Disable()
         self.PortText.Disable()
         self.connect_button.Disable()
@@ -885,7 +938,7 @@ class MainFrame(wx.Frame):
 
         global param 
         param.update(self.setup_param())
-        
+
         if param['work_mod'] == '2': 
             self.tb = run_ue_packet()
             self.setup_route()

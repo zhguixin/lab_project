@@ -26,9 +26,6 @@ from eNB_ping_15prb_two import eNB_ping_15prb_two as run_eNB_packet
 # from eNB_ping_15prb_one61 import eNB_ping_15prb_one61 as run_eNB_packet
 from Audio_eNB import Audio_eNB as run_eNB_audio
 
-# from eNB_ping_15prb_one65_video import *
-# from eNB_ping_15prb_one65_audio import *
-
 #设置系统默认编码方式，不用下面两句，中文会乱码
 reload(sys)  
 sys.setdefaultencoding("utf-8")
@@ -139,7 +136,7 @@ class Detail_Disp(wx.Panel):
 
         # 友情提示控件
         hint_st = wx.StaticText(self, -1, u"温馨提示：\n分组业务演示包含数据与视频的测试，" + 
-            "\n音频通过话筒采样实现接、听")
+            "\n音频通过话筒采样实现接、听;本地参数配置起决定性作用!")
         hint_st.SetForegroundColour('black')
         hint_st.SetBackgroundColour('white')
         font = wx.Font(10, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
@@ -386,6 +383,8 @@ class Detail_Disp(wx.Panel):
         self.t_1.start()
         
         self.q = Queue()
+
+        self.q_2 = Queue()
         self.p_1 = multiprocessing.Process(name='Run_ENB',
                                 target=self.Run_ENB)
         self.p_1.daemon = True
@@ -409,6 +408,10 @@ class Detail_Disp(wx.Panel):
         self.t_1.start()
 
         self.tb.start()
+
+        print self.q_2.get()
+
+        self.tb.stop()
         self.tb.wait()
 
     def update_panel(self):
@@ -427,8 +430,8 @@ class Detail_Disp(wx.Panel):
             time.sleep(1)
 
     def OnStopENB(self,event):
-        self.p_1.terminate()
-        print 'stop...'
+        self.q_2.put('\nquit...')
+        time.sleep(1)
 
         self.u_frequency_param.Enable()
         self.d_frequency_param.Enable()
@@ -444,7 +447,11 @@ class Detail_Disp(wx.Panel):
         self.stop_eNB_btn.Disable()
         self.start_eNB_btn.Enable()
 
+        self.p_1.terminate()
+
     def OnConnect(self, event):
+        self.write_param()
+
         self.IPText.Disable()
         self.PortText.Disable()
         self.connect_button.Disable()
