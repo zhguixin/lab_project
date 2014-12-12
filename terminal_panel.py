@@ -30,8 +30,9 @@ import traceback,time
 import ConfigParser
 from wx.lib.pubsub import Publisher 
 
-from MatplotPanel import MatplotPanel
+# from MatplotPanel import MatplotPanel
 # from StatusPanel import StatusPanel
+from StatusPanel_ue import StatusPanel
 
 from Audio_ue import Audio_ue as run_ue_audio
 
@@ -68,8 +69,9 @@ class MainFrame(wx.Frame):
 
         self.sp = wx.SplitterWindow(self)
         self.panel = wx.Panel(self.sp, style=wx.SP_3D| wx.TAB_TRAVERSAL)
-        self.p1 = MatplotPanel(self.sp)
+        # self.p1 = MatplotPanel(self.sp)
         # self.p1 = StatusPanel(self.sp)
+        self.p1 = StatusPanel(self.sp)
         # self.sp.SplitVertically(self.panel,self.p1,350)
         self.sp.SplitVertically(self.panel,self.p1,700)
 
@@ -615,6 +617,26 @@ class MainFrame(wx.Frame):
         status['rx_rlc2_rate'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc2_rate'])
         return status
 
+    def get_status(self):
+        status = {}
+        status['disp_dl_demapper'] = self.tb.lte_sat_dl_subframe_demapper_0.get_stat().get_disp()
+        status['data_dl_demapper'] = self.tb.lte_sat_dl_subframe_demapper_0.get_stat().get_data()
+        status['unit_dl_demapper'] = self.tb.lte_sat_dl_subframe_demapper_0.get_stat().get_unit()
+        
+        status['disp_ul_mapper'] = self.tb.lte_sat_ul_subframe_mapper_0.get_stat().get_disp()
+        status['data_ul_mapper'] = self.tb.lte_sat_ul_subframe_mapper_0.get_stat().get_data()
+        status['unit_ul_mapper'] = self.tb.lte_sat_ul_subframe_mapper_0.get_stat().get_unit()
+
+        status['disp_dl_sync'] = self.tb.lte_sat_dl_baseband_sync_0.get_stat().get_disp()
+        status['data_dl_sync'] = self.tb.lte_sat_dl_baseband_sync_0.get_stat().get_data()
+        status['unit_dl_sync'] = self.tb.lte_sat_dl_baseband_sync_0.get_stat().get_unit()
+
+        status['disp_layer2_ue'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().get_disp()
+        status['data_layer2_ue'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().get_data()
+        status['unit_layer2_ue'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().get_unit()        
+        
+        return status
+
     def write_param(self):
         self.u_frequency_param.Disable()
         self.d_frequency_param.Disable()
@@ -705,6 +727,7 @@ class MainFrame(wx.Frame):
 
         self.q = Queue()
         self.q_2 = Queue()
+        self.q_list = Queue()
         self.p_1 = multiprocessing.Process(name='Run_UE',
                                 target=self.Run_UE)
         self.p_1.daemon = True
@@ -745,6 +768,7 @@ class MainFrame(wx.Frame):
             try:
                 if self.p_1.is_alive():
                     wx.CallAfter(Publisher().sendMessage, "update", self.q.get())
+                    wx.CallAfter(Publisher().sendMessage, "update_list", self.q_list.get())
             except:
                 # pass
                 print 'self.p1..dead'
@@ -753,6 +777,7 @@ class MainFrame(wx.Frame):
     def put_data(self):
         while True:
             self.q.put(self.status_process())
+            self.q_list.put(self.get_status())
             time.sleep(1)
 
     def OnStopUE(self,event):

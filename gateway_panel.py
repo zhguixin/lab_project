@@ -25,7 +25,8 @@ from eNB_ping_15prb_two import eNB_ping_15prb_two as run_eNB_packet
 # from eNB_ping_15prb_one65 import eNB_ping_15prb_one65 as run_eNB_packet
 # from eNB_ping_15prb_one61 import eNB_ping_15prb_one61 as run_eNB_packet
 from Audio_eNB import Audio_eNB as run_eNB_audio
-from Detail_Disp import Detail_Disp
+# from Detail_Disp import Detail_Disp
+from StatusPanel_eNB import StatusPanel
 
 #设置系统默认编码方式，不用下面两句，中文会乱码
 reload(sys)  
@@ -40,7 +41,8 @@ class MainFrame(wx.Frame):
 
         self.sp = wx.SplitterWindow(self)
         self.panel = wx.Panel(self.sp, style=wx.SP_3D|wx.TAB_TRAVERSAL)
-        self.p1 = Detail_Disp(self.sp)
+        # self.p1 = Detail_Disp(self.sp)
+        self.p1 = StatusPanel(self.sp)
         self.sp.SplitVertically(self.panel,self.p1,370)        
         
         self.panel.SetBackgroundColour("white")
@@ -307,6 +309,18 @@ class MainFrame(wx.Frame):
 
         return status
 
+    def get_status(self):
+        status = {}
+        status['disp_ul_demapper'] = self.tb.lte_sat_ul_subframe_demapper_0.get_stat().get_disp()
+        status['data_ul_demapper'] = self.tb.lte_sat_ul_subframe_demapper_0.get_stat().get_data()
+        status['unit_ul_demapper'] = self.tb.lte_sat_ul_subframe_demapper_0.get_stat().get_unit()        
+
+        status['disp_ul_sync'] = self.tb.lte_sat_ul_baseband_sync_0.get_stat().get_disp()
+        status['data_ul_sync'] = self.tb.lte_sat_ul_baseband_sync_0.get_stat().get_data()
+        status['unit_ul_sync'] = self.tb.lte_sat_ul_baseband_sync_0.get_stat().get_unit()         
+
+        return status
+
     def write_param(self):
         self.u_frequency_param.Disable()
         self.d_frequency_param.Disable()
@@ -392,6 +406,7 @@ class MainFrame(wx.Frame):
         self.t_1.start()
         
         self.q = Queue()
+        self.q_list = Queue()
 
         self.q_2 = Queue()
         self.p_1 = multiprocessing.Process(name='Run_ENB',
@@ -428,6 +443,7 @@ class MainFrame(wx.Frame):
             try:
                 if self.p_1.is_alive():
                     wx.CallAfter(Publisher().sendMessage, "update", self.q.get())
+                    wx.CallAfter(Publisher().sendMessage, "update_list", self.q_list.get())
             except:
                 # pass
                 print 'self.p1..dead'
@@ -436,6 +452,7 @@ class MainFrame(wx.Frame):
     def put_data(self):
         while True:
             self.q.put(self.status_process())
+            self.q_list.put(self.get_status())
             time.sleep(1)
 
     def OnStopENB(self,event):
