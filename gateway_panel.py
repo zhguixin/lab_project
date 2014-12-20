@@ -12,7 +12,8 @@ from gnuradio.filter import firdes
 
 import wx
 import sys
-import os,time
+import os,time,datetime
+import subprocess
 import threading
 import ConfigParser
 import multiprocessing
@@ -21,12 +22,14 @@ import socket,select
 import json
 from wx.lib.pubsub import Publisher
 
+import IPy
 from eNB_ping_15prb_two import eNB_ping_15prb_two as run_eNB_packet
 # from eNB_ping_15prb_one65 import eNB_ping_15prb_one65 as run_eNB_packet
 # from eNB_ping_15prb_one61 import eNB_ping_15prb_one61 as run_eNB_packet
 from Audio_eNB import Audio_eNB as run_eNB_audio
 # from Detail_Disp import Detail_Disp
 from StatusPanel_eNB import StatusPanel
+from SeniorDialog_GatewayV2 import SeniorDialog_Gateway
 
 #设置系统默认编码方式，不用下面两句，中文会乱码
 reload(sys)  
@@ -36,7 +39,7 @@ param = {}
 
 class MainFrame(wx.Frame):
     def __init__(self,parent,id):
-        wx.Frame.__init__(self, None, title=u"信关站界面", size=(1200,800))
+        wx.Frame.__init__(self, None, title=u"信关站界面", size=(1200,810))
         self.Centre()
 
         self.sp = wx.SplitterWindow(self)
@@ -131,6 +134,11 @@ class MainFrame(wx.Frame):
         self.route_2 = wx.ComboBox(self.panel, -1, s_route_2, wx.DefaultPosition,
          wx.DefaultSize, route_list, 0)
 
+        self.detail_setup_btn = wx.Button(self.panel, -1, u"详细配置")
+        self.detail_setup_btn.SetBackgroundColour('black')
+        self.detail_setup_btn.SetForegroundColour('white')        
+        self.Bind(wx.EVT_BUTTON, self.OnDetailSetup, self.detail_setup_btn)        
+
         work_mod_list = [u"分组业务演示",u"音频实时交互演示"]
         work_mod_st = wx.StaticText(self.panel, -1, u"演示模式选择:")
         self.work_mod = wx.ComboBox(self.panel, -1, s_work_mod, wx.DefaultPosition,
@@ -194,7 +202,7 @@ class MainFrame(wx.Frame):
 
         sizer_st_param = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行参数配置'), wx.VERTICAL)
         sizer_st_param.Add(sizer2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
-
+        sizer_st_param.Add(self.detail_setup_btn,0,wx.ALIGN_RIGHT, 5)
 
         sizer_work_mod = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer_work_mod.Add(work_mod_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
@@ -317,7 +325,11 @@ class MainFrame(wx.Frame):
 
         status['disp_ul_sync'] = self.tb.lte_sat_ul_baseband_sync_0.get_stat().get_disp()
         status['data_ul_sync'] = self.tb.lte_sat_ul_baseband_sync_0.get_stat().get_data()
-        status['unit_ul_sync'] = self.tb.lte_sat_ul_baseband_sync_0.get_stat().get_unit()         
+        status['unit_ul_sync'] = self.tb.lte_sat_ul_baseband_sync_0.get_stat().get_unit() 
+
+        status['disp_layer2'] = self.tb.lte_sat_layer2_0.get_stat_info().get_disp()
+        status['data_layer2'] = self.tb.lte_sat_layer2_0.get_stat_info().get_data()
+        status['unit_layer2'] = self.tb.lte_sat_layer2_0.get_stat_info().get_unit()
 
         return status
 
@@ -386,19 +398,43 @@ class MainFrame(wx.Frame):
 
     def setup_route(self):
         tun0 = self.ip.GetValue()
-        route_1 = self.route_1.GetValue()
-        route_2 = self.route_2.GetValue()
+        # route_1 = self.route_1.GetValue()
+        # route_2 = self.route_2.GetValue()
         
+        ip = IPy.IP(tun0).make_net('255.255.255.0')
+        ip = ip.strNormal()
+
         os.system('sudo ifconfig tun0 '+tun0)
         os.system('sudo echo "1">/proc/sys/net/ipv4/ip_forward')
-        os.system('sudo route add '+route_1+' dev tun0')
-        os.system('sudo route add '+route_2+' dev tun0')
+        os.system('sudo route add -net '+ip+' dev tun0')
+        # os.system('sudo route add '+route_1+' dev tun0')
+        # os.system('sudo route add '+route_2+' dev tun0')
+
+    def get_device_info(self):
+        self.p_cmd=subprocess.Popen('uhd_usrp_probe', shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        
+        thread1 = threading.Thread(target = self.start_server)
+        thread1.start()
+    
+    def start_server(self):
+        info_str = ''
+        while True:
+            buff = self.p_cmd.stdout.readline()
+            if buff.find('Device')!=-1 or buff.find('Freq range')!=-1 \
+            or buff.find('Gain range')!=-1:
+                info_str += buff.replace('|',' ').lstrip()
+            if buff == '' and self.p_cmd.poll() != None:
+                break
+
+        print info_str
 
     def OnStartENB(self,event):
         print '########################'
         print 'start...'
         self.start_eNB_btn.Disable()
         self.stop_eNB_btn.Enable()
+        self.get_device_info()
         self.write_param()
 
         self.t_1 = threading.Thread(target = self.update_panel)
@@ -417,8 +453,8 @@ class MainFrame(wx.Frame):
     def Run_ENB(self):
         os.system('rm -rvf *.log *.dat *.test')
         time.sleep(2)
-
         param = self.setup_param()
+        starttime = datetime.datetime.now()
 
         if self.work_mod.GetValue() == u'分组业务演示':
             self.tb = run_eNB_packet(**param)
@@ -437,6 +473,12 @@ class MainFrame(wx.Frame):
 
         self.tb.stop()
         self.tb.wait()
+        endtime = datetime.datetime.now()
+
+        print '*************************************'
+        print '起始时间： ' + str(starttime)
+        print '结束时间： ' + str(endtime)
+        print '消耗时间： ' + str(endtime - starttime)
 
     def update_panel(self):
         while True:
@@ -474,6 +516,54 @@ class MainFrame(wx.Frame):
         self.start_eNB_btn.Enable()
 
         self.p_1.terminate()
+
+    def OnDetailSetup(self,event):
+        self.seniordialog = SeniorDialog_Gateway(None)
+        self.seniordialog.ok_button.Bind(wx.EVT_BUTTON, self.OnOk)
+        self.seniordialog.Bind(wx.EVT_CLOSE, self.OnCloseWindow_SDG)
+        self.seniordialog.Show()
+        self.detail_setup_btn.Disable()
+
+    def OnCloseWindow_SDG(self,event):
+        self.detail_setup_btn.Enable()
+        self.seniordialog.Destroy()
+
+    def OnOk(self,event):
+        pass
+        # # 将设置好的参数写入配置文件
+        # self.param_config.read("param.conf")
+
+        # if "Gateway_station" not in self.param_config.sections():
+        #     self.param_config.add_section("Gateway_station")
+
+        # self.param_config.set("Gateway_station", "s_data_rules", self.seniordialog.data_rules.GetValue())
+        # self.param_config.set("Gateway_station", "s_iter_num", self.seniordialog.iter_num.GetValue())
+        # self.param_config.set("Gateway_station", "s_delta_ss", self.seniordialog.Delta_ss.GetValue())
+        # self.param_config.set("Gateway_station", "s_shift", self.seniordialog.shift.GetValue())
+        # self.param_config.set("Gateway_station", "s_DMRS2", self.seniordialog.DMRS2.GetValue())
+        # self.param_config.set("Gateway_station", "s_decision_type", self.seniordialog.decision_type.GetValue())
+        # self.param_config.set("Gateway_station", "s_algorithm_c", self.seniordialog.algorithm_c.GetValue())
+        # self.param_config.set("Gateway_station", "s_gain_r_sc", self.seniordialog.Gain_r_sc.GetValue())
+        # self.param_config.set("Gateway_station", "s_gain_s_sc", self.seniordialog.Gain_s_sc.GetValue())
+        # self.param_config.set("Gateway_station", "s_exp_code_rate_u_sc", self.seniordialog.exp_code_rate_u.GetValue())
+        # self.param_config.set("Gateway_station", "s_exp_code_rate_d_sc", self.seniordialog.exp_code_rate_d.GetValue())
+        # self.param_config.set("Gateway_station", "s_samp_rate_sc", self.seniordialog.samp_rate_c.GetValue())
+        # self.param_config.set("Gateway_station", "s_virtual_ip_sc", self.seniordialog.virtual_ip.GetValue())
+        # self.param_config.set("Gateway_station", "s_select_route_sc", self.seniordialog.select_route.GetValue())
+        # self.param_config.set("Gateway_station", "s_t_reordering", self.seniordialog.t_Reordering.GetValue())
+        # self.param_config.set("Gateway_station", "s_t_statusprohibit", self.seniordialog.t_StatusProhibit.GetValue())
+        # self.param_config.set("Gateway_station", "s_t_pollretransmit", self.seniordialog.t_PollRetransmit.GetValue())
+        # self.param_config.set("Gateway_station", "s_maxretxthreshold", self.seniordialog.maxRetxThreshold.GetValue())
+        # self.param_config.set("Gateway_station", "s_sn_fieldlength", self.seniordialog.SN_FieldLength.GetValue())
+        # self.param_config.set("Gateway_station", "s_pollpdu", self.seniordialog.pollPDU.GetValue())
+        # self.param_config.set("Gateway_station", "s_pollbyte", self.seniordialog.pollByte.GetValue())
+        # #写入配置文件
+        # param_file = open("param.conf","w")
+        # self.param_config.write(param_file)
+        # param_file.close()
+
+        # self.detail_setup_btn.Enable()
+        # self.seniordialog.Destroy()
 
     def OnConnect(self, event):
         self.write_param()

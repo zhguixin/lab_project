@@ -22,19 +22,21 @@ import wx.grid
 import sys
 import os
 import threading
+import re
 import multiprocessing
 from multiprocessing import Queue
 import socket,select
 import json
-import traceback,time
+import traceback,time,datetime
 import ConfigParser
 from wx.lib.pubsub import Publisher 
 
-# from MatplotPanel import MatplotPanel
-# from StatusPanel import StatusPanel
-from StatusPanel_ue import StatusPanel
+# from MatplotPanel import MatplotPanel as StatusPanel
+# from StatusPanel import StatusPanel as StatusPanel
+from StatusPanel_ue import StatusPanel as StatusPanel
 
 from Audio_ue import Audio_ue as run_ue_audio
+from SeniorDialog_Terminal import SeniorDialog_Terminal
 
 #设置系统默认编码方式，不用下面两句，中文会乱码
 reload(sys)
@@ -72,14 +74,15 @@ class MainFrame(wx.Frame):
         # self.p1 = MatplotPanel(self.sp)
         # self.p1 = StatusPanel(self.sp)
         self.p1 = StatusPanel(self.sp)
-        # self.sp.SplitVertically(self.panel,self.p1,350)
         self.sp.SplitVertically(self.panel,self.p1,700)
 
         self.panel.SetBackgroundColour("white")
 
         self.terminal_config = ConfigParser.ConfigParser()
         self.terminal_config.read("terminal.conf")
-        
+
+        self.param_config = ConfigParser.ConfigParser()
+        self.param_config.read("param.conf")
         #绑定窗口的关闭事件
         self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         
@@ -168,6 +171,19 @@ class MainFrame(wx.Frame):
 
         for index in range(len(rows_tx)):
             self.list_tx.SetStringItem(index, 1, str(rows_tx[index][1])) 
+
+        if dict_status['flag'] == True:
+            self.q_2.put('\nquit...')
+            time.sleep(1)            
+            self.p_1.terminate()
+            print '@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
+            print 'reboot...'
+            time.sleep(2)
+            # self.p_1.start()
+            self.p_1 = multiprocessing.Process(name='Run_UE',
+                                    target=self.Run_UE)
+            self.p_1.daemon = True
+            self.p_1.start()
 
     def create_list(self):
         self.list_rx = wx.ListCtrl(self.panel, -1, style=wx.LC_REPORT, size=(320,450))
@@ -368,6 +384,11 @@ class MainFrame(wx.Frame):
         self.rnti_select = wx.ComboBox(self.panel, -1, s_selected_rnti, wx.DefaultPosition,
          wx.DefaultSize, rnti_list, 0)
 
+        self.detail_setup_btn = wx.Button(self.panel, -1, u"详细配置")
+        self.detail_setup_btn.SetBackgroundColour('black')
+        self.detail_setup_btn.SetForegroundColour('white')        
+        self.Bind(wx.EVT_BUTTON, self.OnDetailSetup, self.detail_setup_btn) 
+
         work_mod_list = [u"分组业务演示",u"音频实时交互演示"]
         work_mod_st = wx.StaticText(self.panel, -1, u"演示模式选择:")
         self.work_mod = wx.ComboBox(self.panel, -1, s_work_mod, wx.DefaultPosition,
@@ -448,7 +469,7 @@ class MainFrame(wx.Frame):
         box1 = wx.BoxSizer(wx.VERTICAL)
         box1.Add(sizer2,0,wx.EXPAND | wx.ALL|wx.TOP, 0)
 
-        sizer_param = wx.FlexGridSizer(cols=2, hgap=5, vgap=5)
+        sizer_param = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
         sizer_param.AddGrowableCol(1)
         sizer_param.Add(u_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_param.Add(self.u_frequency_param, 0, wx.EXPAND)
@@ -473,8 +494,9 @@ class MainFrame(wx.Frame):
 
         box_st_param = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行参数配置'), wx.VERTICAL)
         box_st_param.Add(sizer_param, 0, wx.ALIGN_CENTER)
+        box_st_param.Add(self.detail_setup_btn, 0, wx.ALIGN_RIGHT)
 
-        sizer_work_mod = wx.FlexGridSizer(cols=2, hgap=5, vgap=10)
+        sizer_work_mod = wx.FlexGridSizer(cols=2, hgap=1, vgap=1)
         sizer_work_mod.Add(work_mod_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer_work_mod.Add(self.work_mod, 0, wx.EXPAND)
 
@@ -486,7 +508,7 @@ class MainFrame(wx.Frame):
 
         box_st2 = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行UE测试'), wx.VERTICAL)
         box_st2.Add(sizer_work_mod, 0, wx.ALIGN_CENTER)
-        box_st2.Add((10,10), 0)
+        box_st2.Add((5,5), 0)
         box_st2.Add(ctrl_sizer2, 0, wx.ALIGN_CENTER)
         box_st2.Add(hint_st, 0)
 
@@ -615,9 +637,13 @@ class MainFrame(wx.Frame):
         status['rx_crc_right_rate'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_crc_right_rate'])
         status['rx_mac2rlc_rate'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_mac2rlc_rate'])
         status['rx_rlc2_rate'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().data_convert(status_temp['rx_rlc2_rate'])
+        
+        status['flag'] = self.tb.lte_sat_dl_baseband_sync_0.is_reboot_needed()
+
         return status
 
     def get_status(self):
+        # global flag
         status = {}
         status['disp_dl_demapper'] = self.tb.lte_sat_dl_subframe_demapper_0.get_stat().get_disp()
         status['data_dl_demapper'] = self.tb.lte_sat_dl_subframe_demapper_0.get_stat().get_data()
@@ -633,8 +659,8 @@ class MainFrame(wx.Frame):
 
         status['disp_layer2_ue'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().get_disp()
         status['data_layer2_ue'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().get_data()
-        status['unit_layer2_ue'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().get_unit()        
-        
+        status['unit_layer2_ue'] = self.tb.lte_sat_layer2_ue_0.get_ue_stat_info().get_unit()
+
         return status
 
     def write_param(self):
@@ -702,25 +728,34 @@ class MainFrame(wx.Frame):
 
     def setup_route(self):
         tun2 = self.ip.GetValue()
-        route = self.route.GetValue()
-        route_next = self.route_next.GetValue()
+        # route = self.route.GetValue()
+        # route_next = self.route_next.GetValue()
+
+        ip = IPy.IP(tun2).make_net('255.255.255.0')
+        ip = ip.strNormal()
 
         if self.tb.lte_sat_dl_subframe_demapper_0.get_rnti() == 61:
             os.system('sudo ifconfig tun2 '+tun2)
-            os.system('sudo route add '+route+' dev tun2')
-            os.system('sudo route add '+route_next+' dev tun2')
+            # os.system('sudo route add '+route+' dev tun2')
+            # os.system('sudo route add '+route_next+' dev tun2')
+            os.system('sudo route add -net '+ip+' dev tun2')
         else:
             os.system('sudo ifconfig tun1 '+tun2)
-            os.system('sudo route add '+route+' dev tun1')
-            os.system('sudo route add '+route_next+' dev tun1')
+            # os.system('sudo route add '+route+' dev tun1')
+            # os.system('sudo route add '+route_next+' dev tun1')
+            os.system('sudo route add -net '+ip+' dev tun1')
+
+    def get_device_info(self):
+        pass
 
     def OnStartUE(self,event):
         print '########################'
         print 'start...'        
         self.start_ue_btn.Disable()
         self.stop_ue_btn.Enable()
+        self.get_device_info()
         self.write_param()
-
+        
         self.t_1 = threading.Thread(target = self.update_panel)
         self.t_1.setDaemon(True)
         self.t_1.start()
@@ -737,6 +772,7 @@ class MainFrame(wx.Frame):
         os.system('rm -rvf *.log *.dat *.test')
         time.sleep(2)
         param = self.setup_param()
+        starttime = datetime.datetime.now()
 
         if self.rnti_select.GetValue() == '61':
             from ue61_ping_15prb import ue61_ping_15prb as run_ue_packet
@@ -762,6 +798,12 @@ class MainFrame(wx.Frame):
         # print self.q_2.get_nowait()
         self.tb.stop()
         self.tb.wait()
+        endtime = datetime.datetime.now()
+
+        print '*************************************'
+        print '起始时间： ' + str(starttime)
+        print '结束时间： ' + str(endtime)
+        print '消耗时间： ' + str(endtime - starttime)
 
     def update_panel(self):
         while True:
@@ -799,6 +841,76 @@ class MainFrame(wx.Frame):
         self.start_ue_btn.Enable()
 
         self.p_1.terminate()
+
+    def OnDetailSetup(self,event):
+        self.seniordialog = SeniorDialog_Terminal(None)
+        self.seniordialog.ok_button.Bind(wx.EVT_BUTTON, self.OnOk)
+        self.seniordialog.Bind(wx.EVT_CLOSE, self.OnCloseWindow_SDT)
+        self.seniordialog.Show()
+        self.detail_setup_btn.Disable()
+
+    def OnCloseWindow_SDT(self,event):
+        self.detail_setup_btn.Enable()
+        self.seniordialog.Destroy()
+
+    def OnOk(self,event):
+        # 将设置好的参数写入配置文件
+        self.param_config.read("param.conf")
+        if "Terminal" not in self.param_config.sections():
+            self.param_config.add_section("Terminal")
+
+        self.param_config.set("Terminal", "s_rnti_a", self.seniordialog.RNTI_A.GetValue())
+        self.param_config.set("Terminal", "s_rnti_b", self.seniordialog.RNTI_B.GetValue())
+        self.param_config.set("Terminal", "s_t_advance_a", self.seniordialog.t_advance_A.GetValue())
+        self.param_config.set("Terminal", "s_t_advance_b", self.seniordialog.t_advance_B.GetValue())
+        self.param_config.set("Terminal", "s_virtual_ip_a", self.seniordialog.virtual_ip_A.GetValue())
+        self.param_config.set("Terminal", "s_virtual_ip_b", self.seniordialog.virtual_ip_B.GetValue())
+        self.param_config.set("Terminal", "s_select_route_a", self.seniordialog.select_route_A.GetValue())
+        self.param_config.set("Terminal", "s_select_route_b", self.seniordialog.select_route_B.GetValue())
+        self.param_config.set("Terminal", "s_n_pucch_a", self.seniordialog.n_pucch_A.GetValue())
+        self.param_config.set("Terminal", "s_n_pucch_b", self.seniordialog.n_pucch_B.GetValue())
+        self.param_config.set("Terminal", "s_data_rules", self.seniordialog.data_rules.GetValue())
+        self.param_config.set("Terminal", "s_iter_num", self.seniordialog.iter_num.GetValue())
+        self.param_config.set("Terminal", "s_delta_ss", self.seniordialog.Delta_ss.GetValue())
+        self.param_config.set("Terminal", "s_shift", self.seniordialog.shift.GetValue())
+        self.param_config.set("Terminal", "s_DMRS1", self.seniordialog.DMRS1.GetValue())
+        self.param_config.set("Terminal", "s_decision_type", self.seniordialog.decision_type.GetValue())
+        self.param_config.set("Terminal", "s_algorithm_c", self.seniordialog.algorithm_c.GetValue())
+        self.param_config.set("Terminal", "s_gain_r_sc", self.seniordialog.Gain_r_sc.GetValue())
+        self.param_config.set("Terminal", "s_gain_s_sc", self.seniordialog.Gain_s_sc.GetValue())
+        self.param_config.set("Terminal", "s_samp_rate_sc", self.seniordialog.samp_rate_c.GetValue())
+        self.param_config.set("Terminal", "s_c_srs_a", self.seniordialog.C_SRS_A.GetValue())
+        self.param_config.set("Terminal", "s_b_srs_a", self.seniordialog.B_SRS_A.GetValue())
+        self.param_config.set("Terminal", "s_n_srs_a", self.seniordialog.n_SRS_A.GetValue())
+        self.param_config.set("Terminal", "s_n_rrc_a", self.seniordialog.n_RRC_A.GetValue())
+        self.param_config.set("Terminal", "s_k_tc_a", self.seniordialog.K_TC_A.GetValue())
+        self.param_config.set("Terminal", "s_srs_period_a", self.seniordialog.SRS_period_A.GetValue())
+        self.param_config.set("Terminal", "s_srs_offset_a", self.seniordialog.SRS_offset_A.GetValue())
+        self.param_config.set("Terminal", "s_sr_periodicity_a", self.seniordialog.SR_periodicity_A.GetValue())
+        self.param_config.set("Terminal", "s_sr_offset_a", self.seniordialog.SR_offset_A.GetValue())
+        self.param_config.set("Terminal", "s_c_srs_b", self.seniordialog.C_SRS_B.GetValue())
+        self.param_config.set("Terminal", "s_b_srs_b", self.seniordialog.B_SRS_B.GetValue())
+        self.param_config.set("Terminal", "s_n_srs_b", self.seniordialog.n_SRS_B.GetValue())
+        self.param_config.set("Terminal", "s_n_rrc_b", self.seniordialog.n_RRC_B.GetValue())
+        self.param_config.set("Terminal", "s_k_tc_b", self.seniordialog.K_TC_B.GetValue())
+        self.param_config.set("Terminal", "s_srs_period_b", self.seniordialog.SRS_period_B.GetValue())
+        self.param_config.set("Terminal", "s_srs_offset_b", self.seniordialog.SRS_offset_B.GetValue())
+        self.param_config.set("Terminal", "s_sr_periodicity_b", self.seniordialog.SR_periodicity_B.GetValue())
+        self.param_config.set("Terminal", "s_sr_offset_b", self.seniordialog.SR_offset_B.GetValue())
+        self.param_config.set("Terminal", "s_t_reordering", self.seniordialog.t_Reordering.GetValue())
+        self.param_config.set("Terminal", "s_t_statusprohibit", self.seniordialog.t_StatusProhibit.GetValue())
+        self.param_config.set("Terminal", "s_t_pollretransmit", self.seniordialog.t_PollRetransmit.GetValue())
+        self.param_config.set("Terminal", "s_maxretxthreshold", self.seniordialog.maxRetxThreshold.GetValue())
+        self.param_config.set("Terminal", "s_sn_fieldlength", self.seniordialog.SN_FieldLength.GetValue())
+        self.param_config.set("Terminal", "s_pollpdu", self.seniordialog.pollPDU.GetValue())
+        self.param_config.set("Terminal", "s_pollbyte", self.seniordialog.pollByte.GetValue())
+        # 写入配置文件
+        param_file = open("param.conf","w")
+        self.param_config.write(param_file)
+        param_file.close()
+
+        self.detail_setup_btn.Enable()
+        self.seniordialog.Destroy()
 
     def OnConnect(self, event):
         self.write_param()
