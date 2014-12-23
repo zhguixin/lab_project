@@ -39,7 +39,7 @@ param = {}
 
 class MainFrame(wx.Frame):
     def __init__(self,parent,id):
-        wx.Frame.__init__(self, None, title=u"信关站界面", size=(1200,810))
+        wx.Frame.__init__(self, None, title=u"信关站界面", size=(1200,820))
         self.Centre()
 
         self.sp = wx.SplitterWindow(self)
@@ -53,8 +53,16 @@ class MainFrame(wx.Frame):
         self.param_config = ConfigParser.ConfigParser()
         self.param_config.read("param.conf")
 
+        #绑定窗口的关闭事件
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
+
+        Publisher().subscribe(self.updateDisplay, "update_time")
+
         #创建面板
         self.createframe()
+
+    def updateDisplay(self, msg):
+        self.runtime_st.SetLabel(msg.data)
 
     def createframe(self):
         # 参数从配置文件读取，如果配置文件不存在，则使用默认值
@@ -153,6 +161,13 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnStopENB, self.stop_eNB_btn)
         self.stop_eNB_btn.Disable()
 
+        # 系统运行时间提示
+        self.runtime_st = wx.StaticText(self.panel, -1, u"系统运行时间提示...")
+        self.runtime_st.SetForegroundColour('red')
+        self.runtime_st.SetBackgroundColour('white')
+        font = wx.Font(10, wx.DECORATIVE, wx.ITALIC, wx.NORMAL)
+        self.runtime_st.SetFont(font)        
+
         # 友情提示控件
         hint_st = wx.StaticText(self.panel, -1, u"温馨提示：\n分组业务演示包含数据与视频的测试，" + 
             "\n音频通过话筒采样实现接、听;本地参数配置起决定性作用!")
@@ -176,7 +191,6 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.OnConnect, self.connect_button)
 
         #######开始布局############
-
         sizer2 = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         sizer2.AddGrowableCol(1)
         sizer2.Add(u_frequency_st_param, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
@@ -219,6 +233,8 @@ class MainFrame(wx.Frame):
         box_st2.Add(sizer_work_mod, 0, wx.ALIGN_CENTER)
         box_st2.Add((10,10), 0)
         box_st2.Add(sizer_stop, 0, wx.ALIGN_CENTER)
+        box_st2.Add((5,5), 0)
+        box_st2.Add(self.runtime_st, 0)
         box_st2.Add((5,5), 0)
         box_st2.Add(hint_st, 0)
         
@@ -443,6 +459,7 @@ class MainFrame(wx.Frame):
         
         self.q = Queue()
         self.q_list = Queue()
+        self.q_time = Queue()
 
         self.q_2 = Queue()
         self.p_1 = multiprocessing.Process(name='Run_ENB',
@@ -454,7 +471,7 @@ class MainFrame(wx.Frame):
         os.system('rm -rvf *.log *.dat *.test')
         time.sleep(2)
         param = self.setup_param()
-        starttime = datetime.datetime.now()
+        self.starttime = datetime.datetime.now()
 
         if self.work_mod.GetValue() == u'分组业务演示':
             self.tb = run_eNB_packet(**param)
@@ -476,9 +493,9 @@ class MainFrame(wx.Frame):
         endtime = datetime.datetime.now()
 
         print '*************************************'
-        print '起始时间： ' + str(starttime)
+        print '起始时间： ' + str(self.starttime)
         print '结束时间： ' + str(endtime)
-        print '消耗时间： ' + str(endtime - starttime)
+        print '消耗时间： ' + str(endtime - self.starttime)
 
     def update_panel(self):
         while True:
@@ -486,6 +503,7 @@ class MainFrame(wx.Frame):
                 if self.p_1.is_alive():
                     wx.CallAfter(Publisher().sendMessage, "update", self.q.get())
                     wx.CallAfter(Publisher().sendMessage, "update_list", self.q_list.get())
+                    wx.CallAfter(Publisher().sendMessage, "update_time", '系统已运行： '+self.q_time.get())
             except:
                 # pass
                 print 'self.p1..dead'
@@ -493,8 +511,10 @@ class MainFrame(wx.Frame):
 
     def put_data(self):
         while True:
+            endtime = datetime.datetime.now()
             self.q.put(self.status_process())
             self.q_list.put(self.get_status())
+            self.q_time.put(str(endtime - self.starttime))
             time.sleep(1)
 
     def OnStopENB(self,event):
@@ -769,7 +789,17 @@ class MainFrame(wx.Frame):
         print 'stop'
 
     def OnCloseWindow(self, event):
-        self.Destroy()
+        endtime = datetime.datetime.now()
+
+        try:
+            print '\n*************************************\n'
+            print '起始时间： ' + str(self.starttime)
+            print '结束时间： ' + str(endtime)
+            print '消耗时间： ' + str(endtime - self.starttime)
+            self.Destroy()
+        except:
+            self.Destroy()
+
         # try:
         #     self.status['gateway']="false"
         #     data_status = json.dumps(self.status)
