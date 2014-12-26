@@ -336,8 +336,8 @@ class Gateway_station(wx.Panel):
         self.param_config.set("Gateway_station", "s_exp_code_rate_u_sc", self.seniordialog.exp_code_rate_u.GetValue())
         self.param_config.set("Gateway_station", "s_exp_code_rate_d_sc", self.seniordialog.exp_code_rate_d.GetValue())
         self.param_config.set("Gateway_station", "s_samp_rate_sc", self.seniordialog.samp_rate_c.GetValue())
-        self.param_config.set("Gateway_station", "s_virtual_ip_sc", self.seniordialog.virtual_ip.GetValue())
-        self.param_config.set("Gateway_station", "s_select_route_sc", self.seniordialog.select_route.GetValue())
+        # self.param_config.set("Gateway_station", "s_virtual_ip_sc", self.seniordialog.virtual_ip.GetValue())
+        # self.param_config.set("Gateway_station", "s_select_route_sc", self.seniordialog.select_route.GetValue())
         self.param_config.set("Gateway_station", "s_t_reordering", self.seniordialog.t_Reordering.GetValue())
         self.param_config.set("Gateway_station", "s_t_statusprohibit", self.seniordialog.t_StatusProhibit.GetValue())
         self.param_config.set("Gateway_station", "s_t_pollretransmit", self.seniordialog.t_PollRetransmit.GetValue())
@@ -469,9 +469,9 @@ class MainFrame(wx.Frame):
         self.DisplayText.SetBackgroundColour('gray')
 
         #模式选择
-        work_mod_list = ['数据测试演示', '音频业务演示', '视频业务演示']
+        work_mod_list = ['分组业务演示', '音频业务演示']
         self.work_mod = wx.RadioBox(self.panel, -1, "业务模式", wx.DefaultPosition, wx.DefaultSize,
-                        work_mod_list, 3, wx.RA_SPECIFY_COLS)
+                        work_mod_list, 2, wx.RA_SPECIFY_COLS)
         self.work_mod.SetBackgroundColour((250,250,250,255))
         self.work_mod.SetSelection(s_num)
 
@@ -785,12 +785,10 @@ class MainFrame(wx.Frame):
             # param['pollByte_G'] = self.param_config.get("Gateway_station", "s_pollbyte")
 
         #主界面的参数
-        if self.work_mod.GetItemLabel(self.work_mod.GetSelection()) == '数据测试演示':
+        if self.work_mod.GetItemLabel(self.work_mod.GetSelection()) == '分组业务演示':
             param['work_mod'] = '0'
-        elif self.work_mod.GetItemLabel(self.work_mod.GetSelection()) == '音频业务演示':
-            param['work_mod'] = '1'
         else:
-            param['work_mod'] = '2'
+            param['work_mod'] = '1'
 
         param_G['u_frequency_G'] = self.page1.u_frequency.GetValue()
         param_G['d_frequency_G'] = self.page1.d_frequency.GetValue()

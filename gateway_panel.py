@@ -82,10 +82,10 @@ class MainFrame(wx.Frame):
         except: s_log_type = '内存日志'
         try: s_ip = self.param_config.get("Gateway_station", "s_ip")
         except: s_ip = '192.168.200.3'
-        try: s_route_1 = self.param_config.get("Gateway_station", "s_route_1")
-        except: s_route_1 = '192.168.200.11'
-        try: s_route_2 = self.param_config.get("Gateway_station", "s_route_2")
-        except: s_route_2 = '192.168.200.12'
+        # try: s_route_1 = self.param_config.get("Gateway_station", "s_route_1")
+        # except: s_route_1 = '192.168.200.11'
+        # try: s_route_2 = self.param_config.get("Gateway_station", "s_route_2")
+        # except: s_route_2 = '192.168.200.12'
         try: s_work_mod = self.param_config.get("Gateway_station", "s_work_mod")
         except: s_work_mod = u'分组业务演示'
         try: s_ip_remote = self.param_config.get("Address", "s_ip_remote")
@@ -134,13 +134,13 @@ class MainFrame(wx.Frame):
         self.ip = wx.ComboBox(self.panel, -1, s_ip, wx.DefaultPosition,
          wx.DefaultSize, ip_list, 0)
 
-        route_list = ["192.168.200.11", "192.168.200.12"]
-        route_st_1 = wx.StaticText(self.panel, -1, u"配置UE1 Route:")
-        self.route_1 = wx.ComboBox(self.panel, -1, s_route_1, wx.DefaultPosition,
-         wx.DefaultSize, route_list, 0)
-        route_st_2 = wx.StaticText(self.panel, -1, u"配置UE2 Route:")
-        self.route_2 = wx.ComboBox(self.panel, -1, s_route_2, wx.DefaultPosition,
-         wx.DefaultSize, route_list, 0)
+        # route_list = ["192.168.200.11", "192.168.200.12"]
+        # route_st_1 = wx.StaticText(self.panel, -1, u"配置UE1 Route:")
+        # self.route_1 = wx.ComboBox(self.panel, -1, s_route_1, wx.DefaultPosition,
+        #  wx.DefaultSize, route_list, 0)
+        # route_st_2 = wx.StaticText(self.panel, -1, u"配置UE2 Route:")
+        # self.route_2 = wx.ComboBox(self.panel, -1, s_route_2, wx.DefaultPosition,
+        #  wx.DefaultSize, route_list, 0)
 
         self.detail_setup_btn = wx.Button(self.panel, -1, u"详细配置")
         self.detail_setup_btn.SetBackgroundColour('black')
@@ -183,7 +183,7 @@ class MainFrame(wx.Frame):
         port_st = wx.StaticText(self.panel, -1, u"端口号 :")  
         self.PortText = wx.TextCtrl(self.panel, -1, s_port)
         self.PortText.SetBackgroundColour('#c2e6f8')
-        self.PortText.SetForegroundColour('black')        
+        self.PortText.SetForegroundColour('black')
 
         self.connect_button = wx.Button(self.panel, -1, u"连接")
         self.connect_button.SetBackgroundColour('black')
@@ -209,10 +209,10 @@ class MainFrame(wx.Frame):
         sizer2.Add(self.log_level, 0, wx.EXPAND)    
         sizer2.Add(ip_st, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
         sizer2.Add(self.ip, 0, wx.EXPAND)  
-        sizer2.Add(route_st_1, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer2.Add(self.route_1, 0, wx.EXPAND)
-        sizer2.Add(route_st_2, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
-        sizer2.Add(self.route_2, 0, wx.EXPAND)
+        # sizer2.Add(route_st_1, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        # sizer2.Add(self.route_1, 0, wx.EXPAND)
+        # sizer2.Add(route_st_2, 0, wx.ALIGN_RIGHT|wx.ALIGN_CENTER_VERTICAL)
+        # sizer2.Add(self.route_2, 0, wx.EXPAND)
 
         sizer_st_param = wx.StaticBoxSizer(wx.StaticBox(self.panel, wx.NewId(), u'本地运行参数配置'), wx.VERTICAL)
         sizer_st_param.Add(sizer2,0,wx.EXPAND | wx.ALL | wx.BOTTOM, 5)
@@ -357,10 +357,11 @@ class MainFrame(wx.Frame):
         self.id_sc.Disable()
         self.log_level.Disable()
         self.log_type.Disable()
+        self.work_mod.Disable()
         self.stop_eNB_btn.Enable()
         self.ip.Disable()
-        self.route_1.Disable()
-        self.route_2.Disable()
+        # self.route_1.Disable()
+        # self.route_2.Disable()
 
         #将设置好的参数写入配置文件
         self.param_config.read("param.conf")
@@ -376,8 +377,8 @@ class MainFrame(wx.Frame):
         self.param_config.set("Gateway_station", "s_log_level", self.log_level.GetValue())
         self.param_config.set("Gateway_station", "s_log_type", self.log_type.GetValue())
         self.param_config.set("Gateway_station", "s_ip", self.ip.GetValue())
-        self.param_config.set("Gateway_station", "s_route_1", self.route_1.GetValue())
-        self.param_config.set("Gateway_station", "s_route_2", self.route_2.GetValue())
+        # self.param_config.set("Gateway_station", "s_route_1", self.route_1.GetValue())
+        # self.param_config.set("Gateway_station", "s_route_2", self.route_2.GetValue())
         self.param_config.set("Gateway_station", "s_work_mod", self.work_mod.GetValue())
         #写入配置文件
         param_file = open("param.conf","w")
@@ -443,7 +444,7 @@ class MainFrame(wx.Frame):
             if buff == '' and self.p_cmd.poll() != None:
                 break
 
-        print info_str
+        # print info_str
 
     def OnStartENB(self,event):
         print '########################'
@@ -470,11 +471,13 @@ class MainFrame(wx.Frame):
     def Run_ENB(self):
         os.system('rm -rvf *.log *.dat *.test')
         time.sleep(2)
+
         param = self.setup_param()
         self.starttime = datetime.datetime.now()
 
         if self.work_mod.GetValue() == u'分组业务演示':
             self.tb = run_eNB_packet(**param)
+            time.sleep(2)
             self.setup_route()
         else:
             self.tb = run_eNB_audio(**param)
@@ -528,9 +531,10 @@ class MainFrame(wx.Frame):
         self.id_sc.Enable()
         self.log_level.Enable()
         self.log_type.Enable()
+        self.work_mod.Enable()
         self.ip.Enable()
-        self.route_1.Enable()
-        self.route_2.Enable()
+        # self.route_1.Enable()
+        # self.route_2.Enable()
 
         self.stop_eNB_btn.Disable()
         self.start_eNB_btn.Enable()
@@ -663,6 +667,7 @@ class MainFrame(wx.Frame):
                 if data: 
                     if data == 'start_block':
                         self.q = Queue()
+                        self.q_list = Queue()
                         self.p1 = multiprocessing.Process(name='start_top_block',
                                 target=self.start_top_block)
                         self.p1.daemon = True
@@ -723,6 +728,7 @@ class MainFrame(wx.Frame):
                 if self.p1.is_alive():
                     self.status.update(self.q.get())
                     wx.CallAfter(Publisher().sendMessage, "update", self.status)
+                    wx.CallAfter(Publisher().sendMessage, "update_list", self.q_list.get())
             
             except:#pass
                 print 'self.p1...dead'
@@ -749,21 +755,14 @@ class MainFrame(wx.Frame):
         print param
 
         os.system('rm -rvf *.log *.dat *.test')
-        os.system('uhd_usrp_probe')
-        if param['work_mod'] == '1':
-            self.tb = run_eNB_audio()
-            # os.system('sudo ifconfig tun0 192.168.200.3')
-            # os.system('sudo route add 192.168.200.12 dev tun0')
-        elif param['work_mod'] == '0':
+        time.sleep(2)
+        # os.system('uhd_usrp_probe')
+        if param['work_mod'] == '0':
             self.tb = run_eNB_packet(**param)
+            time.sleep(2)
             self.setup_route()
-            # os.system('sudo ifconfig tun0 192.168.200.3')
-            # os.system('sudo route add 192.168.200.12 dev tun0')
-        elif param['work_mod'] == '2':
-            self.tb = run_eNB_packet(**param)
-            self.setup_route()
-            # os.system('sudo ifconfig tun0 192.168.200.3')
-            # os.system('sudo route add 192.168.200.12 dev tun0')
+        else:
+            self.tb = run_eNB_audio(**param)
 
         self.t1 = threading.Thread(target = self.monitor_forever)
         self.t1.setDaemon(True)
@@ -781,6 +780,7 @@ class MainFrame(wx.Frame):
             # 获取Gnuradio模块中的状态信息，传递至界面
 
             self.q.put(self.status_process())
+            self.q_list.put(self.get_status())
 
             time.sleep(1)
 
@@ -792,10 +792,9 @@ class MainFrame(wx.Frame):
         endtime = datetime.datetime.now()
 
         try:
-            print '\n*************************************\n'
-            print '起始时间： ' + str(self.starttime)
-            print '结束时间： ' + str(endtime)
-            print '消耗时间： ' + str(endtime - self.starttime)
+            self.q_2.put('\nquit...')
+            time.sleep(1)
+            self.p_1.terminate()
             self.Destroy()
         except:
             self.Destroy()
