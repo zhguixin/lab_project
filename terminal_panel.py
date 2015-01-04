@@ -71,10 +71,10 @@ class MainFrame(wx.Frame):
 
         self.sp = wx.SplitterWindow(self)
         self.panel = wx.Panel(self.sp, style=wx.SP_3D| wx.TAB_TRAVERSAL)
-        # self.p1 = MatplotPanel(self.sp)
-        # self.p1 = StatusPanel(self.sp)
-        self.p1 = StatusPanel(self.sp)
-        self.sp.SplitVertically(self.panel,self.p1,700)
+        # self.panel_1 = MatplotPanel(self.sp)
+        # self.panel_1 = StatusPanel(self.sp)
+        self.panel_1 = StatusPanel(self.sp)
+        self.sp.SplitVertically(self.panel,self.panel_1,700)
 
         self.panel.SetBackgroundColour("white")
 
@@ -827,6 +827,11 @@ class MainFrame(wx.Frame):
         self.q_2.put('\nquit...')
         time.sleep(1)
 
+        self.OnStop_Disp()
+
+        self.p_1.terminate()
+
+    def OnStop_Disp(self):
         self.u_frequency_param.Enable()
         self.d_frequency_param.Enable()
         self.prb_c.Enable()
@@ -834,15 +839,30 @@ class MainFrame(wx.Frame):
         self.log_level.Enable()
         self.log_type.Enable()
         self.ip.Enable()
-        self.work_mod.Enable()
         # self.route.Enable()
         # self.route_next.Enable()
         self.rnti_select.Enable()
+        self.work_mod.Enable()
 
         self.stop_ue_btn.Disable()
         self.start_ue_btn.Enable()
 
-        self.p_1.terminate()
+        ############################
+        self.pss_status.state_red()
+        self.sss_status.state_red()
+        self.pbch_status.state_red()
+        self.process_state.state_red()
+        self.cfo.SetLabel('0')
+        self.fte.SetLabel('0')
+        self.pss_pos.SetLabel('0')
+        # self.virtual_ip_t.SetLabel('')
+        # self.select_route_t.SetLabel('')
+        self.id_cell_t.SetLabel('0')
+        self.rnti_t.SetLabel('0')
+        self.bandwidth_t.SetLabel('0')
+
+        ##############################
+        self.panel_1.clear_disp()
 
     def OnDetailSetup(self,event):
         self.seniordialog = SeniorDialog_Terminal(None)

@@ -498,7 +498,7 @@ class MainFrame(wx.Frame):
         print '*************************************'
         print '起始时间： ' + str(self.starttime)
         print '结束时间： ' + str(endtime)
-        print '消耗时间： ' + str(endtime - self.starttime)
+        print '消耗时间： ' + str((endtime - self.starttime))
 
     def update_panel(self):
         while True:
@@ -524,22 +524,25 @@ class MainFrame(wx.Frame):
         self.q_2.put('\nquit...')
         time.sleep(1)
 
+        self.OnStop_Disp()
+
+        self.p_1.terminate()
+
+    def OnStop_Disp(self):
         self.u_frequency_param.Enable()
         self.d_frequency_param.Enable()
         self.prb_c.Enable()
-        self.modtype.Enable()
-        self.id_sc.Enable()
+        # self.id_sc.Enable()
         self.log_level.Enable()
         self.log_type.Enable()
-        self.work_mod.Enable()
         self.ip.Enable()
-        # self.route_1.Enable()
-        # self.route_2.Enable()
+        # self.route.Enable()
+        # self.route_next.Enable()
+        self.rnti_select.Enable()
+        self.work_mod.Enable()
 
-        self.stop_eNB_btn.Disable()
-        self.start_eNB_btn.Enable()
-
-        self.p_1.terminate()
+        self.stop_ue_btn.Disable()
+        self.start_ue_btn.Enable()
 
     def OnDetailSetup(self,event):
         self.seniordialog = SeniorDialog_Gateway(None)
